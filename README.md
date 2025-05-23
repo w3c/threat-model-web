@@ -6,7 +6,7 @@ Follows curated list of resources:
 
 
 ## Security and Web
-- [The Browser Hacker’s Handbook]((https://www.wiley.com/en-us/The+Browser+Hacker's+Handbook-p-9781118662090))
+- [The Browser Hacker’s Handbook](https://www.wiley.com/en-us/The+Browser+Hacker's+Handbook-p-9781118662090)
 - [Tangled Web](https://nostarch.com/tangledweb)
 
 
