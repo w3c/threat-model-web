@@ -2,7 +2,7 @@
 
 A repository for the [Threat Model for the Web](https://www.w3.org/2024/11/security-ig-charter.html#TMW).
 
-Follows curated list of resources:
+Follows a curated list of resources.
 
 
 ## Security and Web Platform
