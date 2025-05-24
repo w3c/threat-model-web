@@ -5,7 +5,7 @@ A repository for the [Threat Model for the Web](https://www.w3.org/2024/11/secur
 Follows curated list of resources:
 
 
-## Security and Web
+## Security and Web Platform
 - [The Browser Hacker’s Handbook](https://www.wiley.com/en-us/The+Browser+Hacker's+Handbook-p-9781118662090)
 - [Tangled Web](https://nostarch.com/tangledweb)
 
