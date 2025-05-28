@@ -14,9 +14,9 @@ However, the Web Platform presents significant security and privacy challenges. 
 Main components of a Web Browser:
 
 * **Browser Engine/Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, the location bar, network stack, SSL/TLS, download manager, and clipboard. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
-* **Rendering Engine**: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. Examples mentioned include Trident (used in MSIE), Gecko (used in Firefox), WebKit (used by Safari, Chrome, and Android), and Presto (used in Opera).
+* **Rendering Engine**: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...) 
 * **Browser Extensions**: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.
-* **Plugins** are code bridges linking external code libraries or applications to a browser. Their installation adds new code to the browser, allowing it to access external application code and support formats that are not natively handled, thereby increasing browser capabilities. Examples include Adobe Flash, multi-vendor Java, or Microsoft Silverlight. Plugins differ from extensions.
+* **Browser Plugins** are code bridges linking external code libraries or applications to a browser. Their installation adds new code to the browser, allowing it to access external application code and support formats that are not natively handled, thereby increasing browser capabilities. Examples include Adobe Flash, multi-vendor Java, or Microsoft Silverlight. Plugins differ from extensions.
 * **Storage** Browsers offer various mechanisms for storing data locally on a user's device, which vary in lifetime and capacity.
   - **Cookies** are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize them. The **Cookie Jar** is the browser's local database for storing cookie information.
   - **localStorage** allows for the persistent storage of key-value pairs accessible within the same origin, often used for non-sensitive data like user preferences or themes.
@@ -24,7 +24,6 @@ Main components of a Web Browser:
   - **IndexedDB** is another mechanism that origins can use to store information.
 * **JavaScript Engine/Interpreter**: JavaScript is a general-purpose scripting language. It allows limited interaction with the host environment through predefined methods and properties that map to native code inside the browser.
 * **Web APIs/Browser API** are interfaces with functionalities available to Web Developers.
-
 
 #### External Dependencies
 
@@ -72,7 +71,7 @@ The assets that need to be protected when considering the web browser threat mod
 #### High-level threats and threat sources
 
 *   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
-*   **Plugins/Add-ons**: Plugins add substantial attack surface and expose additional functionality and targets for adversaries.
+*   **Browser Plugins/Add-ons**: Plugins add substantial attack surface and expose additional functionality and targets for adversaries.
 *   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies or generating arbitrary requests), bypass the same origin and get information from different websites (i.e. Cross-Site Leaks - XS Leaks), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
 *   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting.
 
