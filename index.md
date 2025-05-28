@@ -9,12 +9,21 @@ The web browser is a critical and widely used gateway for accessing the web. It 
 
 However, the Web Platform presents significant security and privacy challenges. The browser, designed to request and execute instructions from arbitrary locations on the Internet, must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
 
-#### High-level threats and threat sources
+#### Components
 
-*   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
-*   **Plugins/Add-ons**: Plugins add substantial attack surface and expose additional functionality and targets for adversaries.
-*   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies or generating arbitrary requests), bypass the same origin and get information from different websites (i.e. Cross-Site Leaks - XS Leaks), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
-*   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting.
+Main components of a Web Browser:
+
+* **Browser Engine/Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, the location bar, network stack, SSL/TLS, download manager, and clipboard. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
+* **Rendering Engine**: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. Examples mentioned include Trident (used in MSIE), Gecko (used in Firefox), WebKit (used by Safari, Chrome, and Android), and Presto (used in Opera).
+* **Browser Extensions**: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.
+* **Plugins** are code bridges linking external code libraries or applications to a browser. Their installation adds new code to the browser, allowing it to access external application code and support formats that are not natively handled, thereby increasing browser capabilities. Examples include Adobe Flash, multi-vendor Java, or Microsoft Silverlight. Plugins differ from extensions.
+* **Storage** Browsers offer various mechanisms for storing data locally on a user's device, which vary in lifetime and capacity.
+  - **Cookies** are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize them. The **Cookie Jar** is the browser's local database for storing cookie information.
+  - **localStorage** allows for the persistent storage of key-value pairs accessible within the same origin, often used for non-sensitive data like user preferences or themes.
+  - **sessionStorage** functions similarly to localStorage, but the data is only available for the page session duration and expires when the browser tab is closed.
+  - **IndexedDB** is another mechanism that origins can use to store information.
+* **JavaScript Engine/Interpreter**: JavaScript is a general-purpose scripting language. It allows limited interaction with the host environment through predefined methods and properties that map to native code inside the browser.
+* **Web APIs/Browser API** are interfaces with functionalities available to Web Developers.
 
 
 #### External Dependencies
@@ -41,6 +50,7 @@ Entry points are interfaces or mechanisms through which an adversary can interac
 *   **Web APIs**: Both standard web APIs and potentially new, interesting APIs the browser exposes.
 *   **Underlying Platform**: Features allowing an origin to send data to the underlying platform.
 
+
 #### Assets
 
 The assets that need to be protected when considering the web browser threat model are diverse and critical to user security and privacy:
@@ -59,11 +69,17 @@ The assets that need to be protected when considering the web browser threat mod
 *   **Credentials and Encryption Keys**: The browser manages Public and secret keys for encryption and signing.
 *   **Confidential Information on Websites**: Data displayed or accessible on websites.
 
+#### High-level threats and threat sources
+
+*   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
+*   **Plugins/Add-ons**: Plugins add substantial attack surface and expose additional functionality and targets for adversaries.
+*   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies or generating arbitrary requests), bypass the same origin and get information from different websites (i.e. Cross-Site Leaks - XS Leaks), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
+*   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting.
+
 #### Security Features
 
 Web browsers employ a variety of security features and protection mechanisms to defend against threats:
 
-*   **Browser Security and Privacy Models**: Underlying models define how the browser handles security and privacy boundaries and interactions.
 *   **Sandboxing**: Sandboxing is a key mechanism for confining components like the rendering engine, restricting their access to the operating system and user files. It acts as a barrier between OS privileges and subprocess privileges.
 *   **Same Origin Policy (SOP)**: A fundamental security control that restricts how a document or script loaded from one origin can interact with a resource from another origin.
 *   **Content Security Policy (CSP)**: A security standard to prevent XSS, clickjacking, and other code injection attacks by specifying which dynamic resources can load.
