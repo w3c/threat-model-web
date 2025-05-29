@@ -13,7 +13,7 @@ However, the Web Platform presents significant security and privacy challenges. 
 
 Main components of a Web Browser:
 
-* **Browser Engine/Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, the location bar, network stack, SSL/TLS, download manager, and clipboard. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
+* **Browser Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, the location bar, network stack, SSL/TLS, download manager, and clipboard. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
 * **Rendering Engine**: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...) 
 * **Browser Extensions**: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.
 * **Browser Plugins** are code bridges linking external code libraries or applications to a browser. Their installation adds new code to the browser, allowing it to access external application code and support formats that are not natively handled, thereby increasing browser capabilities. Examples include Adobe Flash, multi-vendor Java, or Microsoft Silverlight. Plugins differ from extensions.
@@ -98,41 +98,58 @@ Web browsers employ a variety of security features and protection mechanisms to 
 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
+```mermaid
+%%{init: {'theme': 'base'}}%%
+C4Component
+title Web Browser Data Flow Diagram
+
+Person(user, "User", "Interacts via browser UI")
+
+System_Boundary(userDevice, "User Device") {
+
+  System_Boundary(webBrowser, "Web Browser") {
+    Component(webBrowserUI, "Web Browser UI", "Renders UI & captures input")
+    Component(renderEngine, "Rendering Engine", "Parses things and paints UI")
+    Component(jsInterpreter, "JavaScript Engine", "Compiles & executes JS within sandbox")
+    Component(browserExtensions, "Extension Manager", "Loads & runs 3rd-party extensions")
+    Component(browserKernel, "Browser Kernel", "Manages OS calls, network stack, windows, clipboard...")
+    Component(browserPlugins, "Plugin Manager", "Loads & runs NPAPI/PPAPI plugins")
+    ComponentDb(browserStorage, "Browser Storage", "Cookies, localStorage, sessionStorage, IndexedDB")
+    Component(webAPI, "Web API Layer", "Exposes Web APIs")
+  }
+  System_Boundary(platform, "Platform") {
+    Component_Ext(os, "Operating System", "Manages resources & privileges")
+    Component_Ext(deviceSensors, "Device Sensors", "Camera, Microphone, Geolocation")
+    Component_Ext(nativeApps, "Native Applications", "Other installed software")
+  }
+}
+
+System_Boundary(internet, "Internet") {
+  System_Ext(network, "Network/Internet<br/>Infrastructure", "Routes HTTP(S) traffic")
+  System_Ext(webServer, "Web Server", "Hosts sites, scripts, media")
+  System_Ext(webServer3rd, "3rd-Party Web Server", "External scripts & assets")
+}
+
+Rel(user, webBrowserUI, "")
+Rel(webBrowserUI, browserKernel, "")
+BiRel(browserKernel, network, "")
+Rel(browserKernel, renderEngine, "")
+Rel(renderEngine, jsInterpreter, "")
+BiRel(jsInterpreter, webAPI, "")
+BiRel(jsInterpreter, browserStorage, "")
+BiRel(renderEngine, browserStorage, "")
+Rel(browserKernel, os, "")
+BiRel(webAPI, deviceSensors, "")
+Rel(browserKernel, webServer, "")
+Rel(browserKernel, webServer3rd, "")
+Rel(browserKernel, browserExtensions, "")
+Rel(browserExtensions, renderEngine, "")
+Rel(browserKernel, browserPlugins, "")
+Rel(browserPlugins, nativeApps, "")
+
+UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
-+--------------+      (1) Request/Data   +-------------+
-|    User      | <---------------------> |  Web Server |
-+--------------+                         | (Internet)  |
-       ^                                 +-------------+
-       | (11) Rendered Content/UI                ^
-       | (12) Input (Keyboard, Mouse)            | (2) HTML/Scripts/Resources
-       |                                         | (3) Data (Form submission, etc.)
-+------+-------+                         +-------+-----+
-| Web Browser  | <---------------------> | Browser     | (Interacts with OS, Network, Storage)
-|   (Overall)  |   (5) Kernel API/IPC    | Kernel      |
-+------+-------+                         +-------+-----+
-       ^                                         ^     ^
-       | (4) Raw Content/Instructions            |     | (6) Reads/Writes (Files, Settings, etc.)
-       |                                         |     | (7) Network Access
-+------+-------+                         +-------+-----+
-| Rendering    | <---------------------> | Sandboxed   | (Parses, Renders, Executes Scripts)
-| Engine       |   (5) Kernel API/IPC    | Rendering   |
-+--------------+                         | Engine      |
-       ^                                 +-------+-----+
-       | (8) Script/Rendering Output             ^     ^
-       | (9) Data (DOM interaction, etc.)        |     | (10) Reads/Writes (Cookies, Cache, etc.)
-+------+-------+                         +-------+-----+
-| Browser      | <---------------------> |  Local      | (Cookies, localStorage, indexedDB, Cache, History, Passwords)
-| Extensions   |   (8) Extension APIs    |  Storage    |
-+--------------+                         +-------+-----+
-       ^                                         ^
-       | (13) Sensor Requests/Data               | (14) Reads/Writes (e.g., User Preferences, Offline Data)
-+------+-------+                         +-------------+
-| Device       | <---------------------> | Offsite/    | (Databases, Corporate Data Centers, Cloud Storage)
-| Sensors      |   (13) Device APIs      | Database    |
-| (Geolocation,|                         | Storage     |
-| Camera, Mic) |                         +-------------+
-+--------------+
-```
+
 
 **Description of Data Flow:**
 
