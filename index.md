@@ -151,19 +151,3 @@ UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
 
-**Description of Data Flow:**
-
-1.  The **User** interacts with the **Web Browser**, providing input (12) and receiving rendered content (11).
-2.  The **Web Browser** (specifically the Browser Kernel) sends requests (1) to the **Web Server** over the Internet (7).
-3.  The **Web Server** responds with web content (HTML, scripts, resources) (2) and receives data from the browser (e.g., form submissions) (3).
-4.  The **Browser Kernel** receives the raw web content and passes it 4 to the **Sandboxed Rendering Engine**.
-5.  The **Rendering Engine** processes the content (parsing, layout, script execution). It interacts with the **Browser Kernel** using a controlled Kernel API or Inter-Process Communication (IPC) (5) to access privileged resources like the network (7) or file system (6).
-6.  Both the **Browser Kernel** (for settings, history, passwords) and the **Rendering Engine** (for caching, cookies, local data) interact with **Local Storage** (10). The Kernel might handle more persistent or sensitive storage access (6).
-7.  **Browser Extensions** interact with the **Web Browser** (potentially the Kernel or Rendering Engine via APIs) (8), receiving data about the rendered page, modifying content, or performing actions.
-8.  Extensions or the core Browser features may request access to **Device Sensors** (13) (e.g., Geolocation, Camera, Microphone).
-9.  **Device Sensors** return data to the requesting browser component or extension (13).
-10.  The **Browser Kernel** or **Rendering Engine** (via the Kernel API) can interact with **Offsite/Database Storage** (14), reading or writing data as the web application requires.
-
-Trust boundaries exist between many of these components, particularly between the sandboxed **Rendering Engine** and the **Browser Kernel**, the browser and Browser Extensions, and the browser and external entities like the **Web Server** and **Offsite Storage**. The **User** is the ultimate entity the browser aims to protect, receiving input (12) and potentially being tricked by malicious content/UI (11).
-
-Other elements, such as the Credentials API and Notification API, can also provide access to users' assets.
