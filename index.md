@@ -16,7 +16,6 @@ Main components of a Web Browser:
 * **Browser Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, the location bar, network stack, SSL/TLS, download manager, and clipboard. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
 * **Rendering Engine**: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...) 
 * **Browser Extensions**: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.
-* **Browser Plugins** are code bridges linking external code libraries or applications to a browser. Their installation adds new code to the browser, allowing it to access external application code and support formats that are not natively handled, thereby increasing browser capabilities. Examples include Adobe Flash, multi-vendor Java, or Microsoft Silverlight. Plugins differ from extensions.
 * **Storage** Browsers offer various mechanisms for storing data locally on a user's device, which vary in lifetime and capacity.
   - **Cookies** are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize them. The **Cookie Jar** is the browser's local database for storing cookie information.
   - **localStorage** allows for the persistent storage of key-value pairs accessible within the same origin, often used for non-sensitive data like user preferences or themes.
@@ -41,7 +40,7 @@ The web browser operates within an ecosystem that includes several external depe
 
 Entry points are interfaces or mechanisms through which an adversary can interact with or supply data to the system. For a web browser, these include:
 
-*   **The Browser Interface**: The user interface itself, where user input is provided. It includes also Trusted UI.
+*   **The Browser UI**: The user interface itself, where user input is provided. It includes also Trusted UI.
 *   **Network Interfaces**: Ports and protocols the browser uses to communicate over the network (e.g., Sockets, RPC, HTTP/HTTPS ports).
 *   **Web Content (HTML, CSS, Scripts, Media)**: Malicious code, scripts, or content delivered from web servers. The browser runs code from untrusted sources when presented with scripts. An adversary can convince the browser to render malicious content. Specific threats are linked to the specific file formats.
 *   **User Input Fields**: Any area where users can input data, which can be manipulated maliciously (e.g., forms, URLs).
@@ -71,7 +70,6 @@ The assets that need to be protected when considering the web browser threat mod
 #### High-level threats and threat sources
 
 *   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
-*   **Browser Plugins/Add-ons**: Plugins add substantial attack surface and expose additional functionality and targets for adversaries.
 *   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies or generating arbitrary requests), bypass the same origin and get information from different websites (i.e. Cross-Site Leaks - XS Leaks), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
 *   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting.
 
@@ -85,7 +83,6 @@ Web browsers employ a variety of security features and protection mechanisms to 
 *   **HTTPS/SSL/TLS**: Protocols for secure, encrypted communication between the browser and web servers, ensuring data integrity and confidentiality in transit. HTTP Strict Transport Security (HSTS) is related.
 *   **Input Validation and Output Encoding**: These are crucial practices for handling user-supplied data to prevent injection attacks like XSS.
 *   **Security Headers**: HTTP headers instruct browsers on handling content securely.
-*   **Reflected XSS Filtering**: Mechanisms to detect and block reflected XSS attacks.
 *   **Anti-Phishing and Anti-Malware**: Features like Safe Browsing warn users about malicious websites.
 *   **Mixed Content Handling**: How the browser treats secure (HTTPS) pages that load insecure (HTTP) resources.
 *   **Renderer Isolation**: Architectures that place complex, error-prone components like the rendering engine in a separate, sandboxed process or protection domain from the browser kernel. The browser kernel handles sensitive OS, network, and storage interactions.
@@ -93,6 +90,8 @@ Web browsers employ a variety of security features and protection mechanisms to 
 *   **Download Manager**: Component handling file downloads, potentially including security checks.
 *   **Data Minimization and Default Privacy Settings**: Design principles and configurations to reduce the exposure of potentially identifying information.
 *   **Trusted UI**: Ensuring sensitive user interactions occur within browser interfaces that web content cannot easily spoof or manipulate.
+*   **Permission API**: Asking the user before the activation of a powerful feature 
+
 
 #### Data Flow Diagram
 
@@ -113,7 +112,6 @@ System_Boundary(userDevice, "User Device") {
     Component(jsInterpreter, "JavaScript Engine", "Compiles & executes JS within sandbox")
     Component(browserExtensions, "Browser Extensions", "Loads & runs 3rd-party extensions")
     Component(browserKernel, "Browser Kernel", "Manages OS calls, network stack, windows, clipboard...")
-    Component(browserPlugins, "Browser Plugins", "Loads & runs NPAPI/PPAPI plugins")
     ComponentDb(browserStorage, "Browser Storage", "Cookies, localStorage, sessionStorage, IndexedDB")
     Component(webAPI, "Web API Layer", "Exposes Web APIs")
   }
@@ -143,10 +141,7 @@ BiRel(webAPI, deviceSensors, "")
 BiRel(browserKernel, network, "")
 BiRel(network, webServer, "")
 BiRel(network, webServer3rd, "")
-Rel(browserKernel, browserExtensions, "")
 Rel(browserExtensions, renderEngine, "")
-Rel(browserKernel, browserPlugins, "")
-Rel(browserPlugins, nativeApps, "")
 
 UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
