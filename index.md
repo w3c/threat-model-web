@@ -98,7 +98,6 @@ Web browsers employ a variety of security features and protection mechanisms to 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
 ```mermaid
-%%{init: {'themeVariables': {'primaryColor': '#0366d6','primaryTextColor': '#ffffff','primaryBorderColor': '#0366d6','lineColor': '#a0a0a0','secondaryColor': '#e0e0e0','tertiaryColor': '#f5f5f5'}}}%%
 C4Component
 title Web Browser Data Flow Diagram
 
