@@ -1,6 +1,8 @@
-### Threat Model for the Web Platform
+# Threat Model for the Web Platform
 
-#### Use Scenario
+## What are we building?
+
+### Use Scenario
 
 The Web Platform is a collection of open (royalty-free) technologies that enable the Web. As a platform, users interact with websites using their user agent (e.g., a Web Browser).
 
@@ -9,7 +11,7 @@ The web browser is a critical and widely used gateway for accessing the web. It 
 
 However, the Web Platform presents significant security and privacy challenges. The browser, designed to request and execute instructions from arbitrary locations on the Internet, must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
 
-#### Components
+### Components
 
 Main components of a Web Browser:
 
@@ -24,7 +26,7 @@ Main components of a Web Browser:
 * **JavaScript Engine/Interpreter**: JavaScript is a general-purpose scripting language. It allows limited interaction with the host environment through predefined methods and properties that map to native code inside the browser.
 * **Web APIs/Browser API** are interfaces with functionalities available to Web Developers.
 
-#### External Dependencies
+### External Dependencies
 
 The web browser operates within an ecosystem that includes several external dependencies, systems, or entities it interacts with or relies upon:
 
@@ -36,7 +38,7 @@ The web browser operates within an ecosystem that includes several external depe
 *   **Cryptography**: The use of and interaction with cryptographic protocols, although not specifically an input, is a category of threats to be taken into account, particularly at this moment in history in relation to the transition to post-quantum cryptography.
 *   **External Components/Systems**: Any external dependency on components or systems can impact the browser's security.
 
-#### Entry Points
+### Entry Points
 
 Entry points are interfaces or mechanisms through which an adversary can interact with or supply data to the system. For a web browser, these include:
 
@@ -49,7 +51,7 @@ Entry points are interfaces or mechanisms through which an adversary can interac
 *   **Underlying Platform**: Features allowing an origin to send data to the underlying platform.
 
 
-#### Assets
+### Assets
 
 The assets that need to be protected when considering the web browser threat model are diverse and critical to user security and privacy:
 
@@ -67,13 +69,13 @@ The assets that need to be protected when considering the web browser threat mod
 *   **Credentials and Encryption Keys**: The browser manages Public and secret keys for encryption and signing.
 *   **Confidential Information on Websites**: Data displayed or accessible on websites.
 
-#### High-level threats and threat sources
+### High-level threats and threat sources
 
 *   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
 *   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies, or generating arbitrary requests - Cross Site Request Forgery - CSRF, UI Redressing/Clickjacking), bypass the same origin and get information from different websites (i.e. _Cross-Site Leaks - XS Leaks_), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
 *   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting. Some APIs can add fingerprinting surface.
 
-#### Security Features
+### Security Features
 
 Web browsers employ a variety of security features and protection mechanisms to defend against threats:
 
@@ -93,7 +95,7 @@ Web browsers employ a variety of security features and protection mechanisms to 
 *   **Permission API**: Asking the user before the activation of a powerful feature 
 
 
-#### Data Flow Diagram
+### Data Flow Diagram
 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
