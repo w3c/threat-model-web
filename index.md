@@ -157,6 +157,8 @@ UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 #### Same Origin Policy
 
+The diagram illustrates the Same Origin Policy, that restricts how a document or script loaded from one origin can interact with a resource from another origin, to check if a Web API permits to bypass this policy when loaded in different contexts.
+
 ```mermaid
 
 C4Component
