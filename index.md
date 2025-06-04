@@ -69,11 +69,15 @@ The assets that need to be protected when considering the web browser threat mod
 *   **Credentials and Encryption Keys**: The browser manages Public and secret keys for encryption and signing.
 *   **Confidential Information on Websites**: Data displayed or accessible on websites.
 
-### High-level threats and threat sources
+### Threat sources
 
 *   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
 *   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies, or generating arbitrary requests - Cross Site Request Forgery - CSRF, UI Redressing/Clickjacking), bypass the same origin and get information from different websites (i.e. _Cross-Site Leaks - XS Leaks_), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
-*   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting. Some APIs can add fingerprinting surface.
+
+### High-level Threats
+
+*   **Tracking/Privacy Loss**: Fingerprinting is a method of identification of the users without their knowledge or consent. Fingerprinting touches on both privacy and security issues, has a dual significance. On the one hand, it can be used by an adversary to uniquely identify a user (a scenario normally related to privacy) i.e., allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. On the other hand, it can be used to identify the type of device (a scenario normally related to security, for example for the subsequent compromise of the device). Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting. Some APIs can add fingerprinting surface.
+
 
 ### Security Features
 
