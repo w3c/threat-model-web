@@ -29,7 +29,7 @@ Main components of a Web Browser:
 The web browser operates within an ecosystem that includes several external dependencies, systems, or entities it interacts with or relies upon:
 
 *   **Operating System (OS)**: The browser runs with privileges granted by the OS, equivalent to user privileges. Browser security goals must manifest correctly between tabs, websites, and the OS. The OS provides a higher level of security against direct network connections than browsers.
-*   **Network/Internet Infrastructure**: The browser's primary function involves requesting instructions and content from arbitrary locations on the Internet. This relies on the underlying network protocols like TCP/IP, which the browser presumably trusts. The decentralised nature of the internet means unencrypted data is likely being read by someone.
+*   **Network/Internet**: The browser's primary function involves requesting instructions and content from arbitrary locations on the Internet. This relies on the underlying network protocols like TCP/IP, which the browser presumably trusts. The decentralised nature of the internet means unencrypted data is likely being read by someone.
 *   **Web Servers and their backend**: These are the primary source of content, instructions (scripts, HTML), and resources for the browser. The browser must surrender control and execute commands provided by the server. A web server can also reduce a browser's security. Websites interact with databases, off-site storage, and corporate data centres. Data flows between the browser context and these backend systems.
 *   **Third Parties/Other Origins**: Modern web applications often include resources and scripts from other origins, which must also be executed. Websites may depend on third parties for ads, analytics, or authentication databases.
 *   **Native Applications**: Other applications installed on the user's system can potentially access browser assets directly (e.g., via file system or memory inspection).
@@ -44,7 +44,7 @@ Entry points are interfaces or mechanisms through which an adversary can interac
 *   **Network Interfaces**: Ports and protocols the browser uses to communicate over the network (e.g., Sockets, RPC, HTTP/HTTPS ports).
 *   **Web Content (HTML, CSS, Scripts, Media)**: Malicious code, scripts, or content delivered from web servers. The browser runs code from untrusted sources when presented with scripts. An adversary can convince the browser to render malicious content. Specific threats are linked to the specific file formats.
 *   **User Input Fields**: Any area where users can input data, which can be manipulated maliciously (e.g., forms, URLs).
-*   **Browser Extensions/Plugins APIs**: The browser exposes interfaces for extensions to interact with the browser and web content.
+*   **Browser Extensions**: The browser exposes interfaces for extensions to interact with the browser and web content.
 *   **Web APIs**: Both standard web APIs and potentially new, interesting APIs the browser exposes.
 *   **Underlying Platform**: Features allowing an origin to send data to the underlying platform.
 
@@ -70,8 +70,8 @@ The assets that need to be protected when considering the web browser threat mod
 #### High-level threats and threat sources
 
 *   **Browser Extensions**: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.
-*   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies or generating arbitrary requests), bypass the same origin and get information from different websites (i.e. Cross-Site Leaks - XS Leaks), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
-*   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting.
+*   **Applications/Websites**: Websites can be compromised and malicious. Different attacks can be directed to compromise the user's session on the same website (e.g., stealing cookies, or generating arbitrary requests - Cross Site Request Forgery - CSRF, UI Redressing/Clickjacking), bypass the same origin and get information from different websites (i.e. _Cross-Site Leaks - XS Leaks_), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.
+*   **Tracking/Privacy Loss**: Browser fingerprinting is a method to identify a user, correlate browsing activity within and across sessions, and track users without their knowledge or consent. This raises privacy concerns, allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. When correlated with identifying information, fingerprinting can identify otherwise pseudonymous users. Techniques like clearing cookies or using a VPN may not prevent this correlation. Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting. Some APIs can add fingerprinting surface.
 
 #### Security Features
 
@@ -88,7 +88,7 @@ Web browsers employ a variety of security features and protection mechanisms to 
 *   **Renderer Isolation**: Architectures that place complex, error-prone components like the rendering engine in a separate, sandboxed process or protection domain from the browser kernel. The browser kernel handles sensitive OS, network, and storage interactions.
 *   **Inter-process Communication (IPC)**: Secure channels for communication between isolated browser components (e.g., kernel and renderer).
 *   **Download Manager**: Component handling file downloads, potentially including security checks.
-*   **Data Minimization and Default Privacy Settings**: Design principles and configurations to reduce the exposure of potentially identifying information.
+*   **Data Minimization and Privacy Settings**: Design principles and configurations to reduce the exposure of potentially identifying information.
 *   **Trusted UI**: Ensuring sensitive user interactions occur within browser interfaces that web content cannot easily spoof or manipulate.
 *   **Permission API**: Asking the user before the activation of a powerful feature 
 
