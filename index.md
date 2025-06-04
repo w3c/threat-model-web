@@ -101,6 +101,8 @@ Web browsers employ a variety of security features and protection mechanisms to 
 
 ### Data Flow Diagram
 
+#### Main Browser Components
+
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
 ```mermaid
@@ -153,5 +155,38 @@ Rel(browserExtensions, renderEngine, "")
 
 UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
+#### Same Origin Policy
 
+```mermaid
+
+C4Component
+
+title Same Origin Diagram
+
+Container_Boundary(mainWindowFoo, "Main Window (origin Foo)") {
+  Container(iframeFooFoo, "Iframe (origin Foo)", "HTML/JS", "🟢")
+  Container(iframeFooBar, "Iframe (origin Bar)", "HTML/JS", "🔴")
+}
+
+
+Container_Boundary(mainWindowBar, "Main Window (origin Bar)") {
+  Container(iframeBarFoo, "Iframe (origin Foo)", "HTML/JS", "🔴")
+  Container(iframeBarBar, "Iframe (origin Bar)", "HTML/JS", "🟢")
+}
+
+
+
+UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+
+UpdateElementStyle(mainWindowFoo, $borderColor="blue", $textColor="blue", $fontColor="blue")
+UpdateElementStyle(iframeFooFoo, $bgColor="blue")
+UpdateElementStyle(iframeBarFoo, $bgColor="blue")
+
+UpdateElementStyle(mainWindowBar, $borderColor="teal", $textColor="teal", $fontColor="teal")
+UpdateElementStyle(iframeFooBar, $bgColor="teal")
+UpdateElementStyle(iframeBarBar, $bgColor="teal")
+
+
+
+```
 
