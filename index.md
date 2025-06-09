@@ -44,7 +44,7 @@ Entry points are interfaces or mechanisms through which an adversary can interac
 
 *   **The Browser UI**: The user interface itself, where user input is provided. It includes also Trusted UI.
 *   **Network Interfaces**: Ports and protocols the browser uses to communicate over the network (e.g., Sockets, RPC, HTTP/HTTPS ports).
-*   **Web Content (HTML, CSS, Scripts, Media)**: Malicious code, scripts, or content delivered from web servers. The browser runs code from untrusted sources when presented with scripts. An adversary can convince the browser to render malicious content. Specific threats are linked to the specific file formats.
+*   **Web Content (HTML, CSS, Fonts, Scripts, Media)**: Malicious code, scripts, or content delivered from web servers. The browser runs code from untrusted sources when presented with scripts. An adversary can convince the browser to render malicious content. Specific threats are linked to the specific file formats.
 *   **User Input Fields**: Any area where users can input data, which can be manipulated maliciously (e.g., forms, URLs).
 *   **Browser Extensions**: The browser exposes interfaces for extensions to interact with the browser and web content.
 *   **Web APIs**: Both standard web APIs and potentially new, interesting APIs the browser exposes.
