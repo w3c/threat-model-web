@@ -6,7 +6,7 @@
 
 The Web Platform is a collection of open (royalty-free) technologies that enable the Web. As a platform, users interact with websites using their user agent (e.g., a Web Browser).
 
-Websites contain a series of file formats, such as HTML, CSS, multimedia files, and scripts, that are transmitted from the server to the user's device, interpreted, and rendered by the browser so the user can use them.   
+Websites contain a series of file formats, such as HTML, CSS, fonts, multimedia files, and scripts, that are transmitted from the server to the user's device, interpreted, and rendered by the browser so the user can use them.   
 The web browser is a critical and widely used gateway for accessing the web. It is increasingly relied upon as the single most important application for work, forming the basis of browser-centric workflows.
 
 However, the Web Platform presents significant security and privacy challenges. The browser, designed to request and execute instructions from arbitrary locations on the Internet, must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
