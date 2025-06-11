@@ -97,7 +97,7 @@ Web browsers employ a variety of security features and protection mechanisms to 
 *   **Data Minimization and Privacy Settings**: Design principles and configurations to reduce the exposure of potentially identifying information.
 *   **Trusted UI**: Ensuring sensitive user interactions occur within browser interfaces that web content cannot easily spoof or manipulate.
 *   **Permission API**: Asking the user before the activation of a powerful feature 
-
+*   **Transient Activation**: It is a gate, a window state that indicates a user has recently pressed a button, moved a mouse, used a menu, or performed some other user interaction. Sometimes used as a mechanism for ensuring that a web API can only function if triggered by user interaction. For example, scripts cannot arbitrarily launch a popup that requires transient activation ⁠— it must be triggered from a UI element's event handler.
 
 ### Data Flow Diagram
 
