@@ -26,6 +26,10 @@ Follows a curated list of resources.
 - [The Browser Threat Model](https://iang.org/ssl/browser_threat_model.html#browser)
 - [Target Privacy Threat Model](https://w3cping.github.io/privacy-threat-model/)
 - [Threat model End-To-End](https://github.com/google/end-to-end/wiki/Threat-model)
+- [Payment Handler Privacy Threat Model](https://w3c.github.io/webpayments/proposals/privacy-threat-model.html)
+- [FIDO Security Reference (includes Threat Analysis and a Diagram)](https://fidoalliance.org/specs/common-specs/fido-security-ref-v2.1-rd-20210525.html)
+
+
 
 ## Threats
  - [Self-Review Questionnaire: Security and Privacy](https://www.w3.org/TR/security-privacy-questionnaire/)
