@@ -138,22 +138,11 @@ System_Boundary(internet, "Internet") {
   System_Ext(webServer3rd, "3rd-Party Web Server", "External scripts & assets")
 }
 
-Rel(user, webBrowserUI, "")
-Rel(webBrowserUI, browserKernel, "")
 BiRel(browserKernel, network, "")
-Rel(browserKernel, renderEngine, "")
-Rel(renderEngine, jsInterpreter, "")
-BiRel(jsInterpreter, webAPI, "")
-BiRel(jsInterpreter, browserStorage, "")
-BiRel(renderEngine, browserStorage, "")
-Rel(browserKernel, os, "")
-BiRel(webAPI, deviceSensors, "")
-BiRel(browserKernel, network, "")
-BiRel(network, webServer, "")
-BiRel(network, webServer3rd, "")
-Rel(browserExtensions, renderEngine, "")
+BiRel(browserKernel, os, "")
+BiRel(user, webBrowserUI, "")
 
-UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
 ```
 #### Same Origin Policy
 
@@ -176,9 +165,6 @@ Container_Boundary(mainWindowBar, "Main Window (origin Bar)") {
   Container(iframeBarBar, "Iframe (origin Bar)", "HTML/JS", "🟢")
 }
 
-
-
-UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
 
 UpdateElementStyle(mainWindowFoo, $borderColor="blue", $textColor="blue", $fontColor="blue")
 UpdateElementStyle(iframeFooFoo, $bgColor="blue")
