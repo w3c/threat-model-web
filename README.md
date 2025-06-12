@@ -11,13 +11,19 @@ Follows a curated list of resources.
 
 
 ## Browsers
- - [The Security Architecture of the Chromium Browser](https://seclab.stanford.edu/websec/chromium/chromium-security-architecture.pdf)
+- [The Security Architecture of the Chromium Browser](https://seclab.stanford.edu/websec/chromium/chromium-security-architecture.pdf)
 - [Web Browser Security: Evolving Threats, Safeguards, and the Road Ahead](https://www.red-gate.com/simple-talk/featured/web-browser-security-evolving-threats-safeguards-and-the-road-ahead/)
 - [Browser Security Handbook](https://code.google.com/archive/p/browsersec/)
 - [Firefox privacy and security features](https://support.mozilla.org/en-US/kb/firefox-privacy-and-security-features)
 - [Secure Architecture](https://www.chromium.org/Home/chromium-security/guts/)
 - [Chrome Security Architecture - Process Level Snapshot](https://docs.google.com/drawings/d/1TuECFL9K7J5q5UePJLC-YH3satvb1RrjLRH-tW_VKeE/edit)
+- [Multi-Process Architecture](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
+- [Sandboxing](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/design/sandbox.md)
+- [How to Find Vulnerabilities in Web Browsers](https://docs.google.com/presentation/d/1rEPiqV0KBHAI0lVym283OHzYRXNCCuGudmDby1Z1qyc/edit?slide=id.g35a4ea0d9bd_0_42#slide=id.g35a4ea0d9bd_0_42)
+
+## Web APIs
 - [Permissions](https://albertofdr.github.io/web-security-class/browser/browser.permissions)
+
 
 ## Extensions
 - [A Study on Malicious Browser Extensions in 2025](https://arxiv.org/abs/2503.04292)
@@ -29,14 +35,10 @@ Follows a curated list of resources.
 - [Payment Handler Privacy Threat Model](https://w3c.github.io/webpayments/proposals/privacy-threat-model.html)
 - [FIDO Security Reference (includes Threat Analysis and a Diagram)](https://fidoalliance.org/specs/common-specs/fido-security-ref-v2.1-rd-20210525.html)
 
-
-
 ## Threats
  - [Self-Review Questionnaire: Security and Privacy](https://www.w3.org/TR/security-privacy-questionnaire/)
- - [Mitigating Browser Fingerprinting in Web Specifications
-](https://www.w3.org/TR/fingerprinting-guidance/)
- - [Most Common Browser Threats in 2024: An
-Overview of Attack Mechanisms and Impacts](https://keepaware.com/blog/common-browser-threats-of-2024-an-overview-of-attack-mechanisms-and-impacts)
+ - [Mitigating Browser Fingerprinting in Web Specifications](https://www.w3.org/TR/fingerprinting-guidance/)
+ - [Most Common Browser Threats in 2024: An Overview of Attack Mechanisms and Impacts](https://keepaware.com/blog/common-browser-threats-of-2024-an-overview-of-attack-mechanisms-and-impacts)
  - [Fingerprinting and Tracing Shadows: The Development and Impact of Browser Fingerprinting on Digital Privacy](https://arxiv.org/abs/2411.12045)
  - [XS-Leaks Wiki](https://xsleaks.dev)
  - [Tracking](https://albertofdr.github.io/web-security-class/advanced/web.tracking)
