@@ -1,5 +1,8 @@
 # Threat Model for the Web Platform
 
+Editor: Simone Onofri (W3C)
+Editor: ⁨Joe Andreieu⁩ (Legendary Requirements)
+
 ## What are we building?
 
 ### Use Scenario
