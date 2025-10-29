@@ -4,6 +4,8 @@ Editor: Simone Onofri (W3C)
 
 Editor: ⁨Joe Andreieu⁩ (Legendary Requirements)
 
+Editor: Alberto Fernandez-de-Retana (Invited Expert)
+
 ## What are we building?
 
 ### Use Scenario
@@ -53,7 +55,6 @@ Entry points are interfaces or mechanisms through which an adversary can interac
 *   **Browser Extensions**: The browser exposes interfaces for extensions to interact with the browser and web content.
 *   **Web APIs**: Both standard web APIs and potentially new, interesting APIs the browser exposes.
 *   **Underlying Platform**: Features allowing an origin to send data to the underlying platform.
-
 
 ### Assets
 
@@ -109,76 +110,5 @@ Web browsers employ a variety of security features and protection mechanisms to 
 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
-```mermaid
-%%{init: {"theme": "base", "themeVariables": {"background": "#ffffff", "secondaryBackground": "#ffffff", "tertiaryBackground": "#ffffff", "edgeLabelBackground": "#ffffff", "clusterBkg": "#ffffff", "primaryColor": "#0366d6", "primaryTextColor": "#000000", "primaryBorderColor": "#0366d6", "secondaryColor": "#f0f0f0", "secondaryBorderColor": "#c0c0c0", "lineColor": "#a0a0a0", "tertiaryColor": "#e0e0e0"}}}%%
-
-C4Component
-
-title Web Browser Data Flow Diagram
-
-Person(user, "User", "Interacts via browser UI")
-
-System_Boundary(userDevice, "User Device") {
-
-  System_Boundary(webBrowser, "Web Browser") {
-    Component(webBrowserUI, "Browser UI", "Renders UI & captures input")
-    Component(renderEngine, "Rendering Engine", "Parses things and paints UI")
-    Component(jsInterpreter, "JavaScript Engine", "Compiles & executes JS within sandbox")
-    Component(browserExtensions, "Browser Extensions", "Loads & runs 3rd-party extensions")
-    Component(browserKernel, "Browser Kernel", "Manages OS calls, network stack, windows, clipboard...")
-    ComponentDb(browserStorage, "Browser Storage", "Cookies, localStorage, sessionStorage, IndexedDB")
-    Component(webAPI, "Web API Layer", "Exposes Web APIs")
-  }
-  System_Boundary(platform, "Platform") {
-    Component_Ext(os, "Operating System", "Manages resources & privileges")
-    Component_Ext(deviceSensors, "Device Sensors", "Camera, Microphone, Geolocation")
-    Component_Ext(nativeApps, "Native Applications", "Other installed software")
-  }
-}
-
-System_Boundary(internet, "Internet") {
-  System_Ext(network, "Network/Internet<br/>Infrastructure", "Routes HTTP(S) traffic")
-  System_Ext(webServer, "Web Server", "Hosts sites, scripts, media")
-  System_Ext(webServer3rd, "3rd-Party Web Server", "External scripts & assets")
-}
-
-BiRel(browserKernel, network, "")
-BiRel(browserKernel, os, "")
-BiRel(user, webBrowserUI, "")
-
-UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
-```
-#### Same Origin Policy
-
-The diagram illustrates the Same Origin Policy, that restricts how a document or script loaded from one origin can interact with a resource from another origin, to check if a Web API permits to bypass this policy when loaded in different contexts.
-
-```mermaid
-
-C4Component
-
-title Same Origin Diagram
-
-Container_Boundary(mainWindowFoo, "Main Window (origin Foo)") {
-  Container(iframeFooFoo, "Iframe (origin Foo)", "HTML/JS", "🟢")
-  Container(iframeFooBar, "Iframe (origin Bar)", "HTML/JS", "🔴")
-}
-
-
-Container_Boundary(mainWindowBar, "Main Window (origin Bar)") {
-  Container(iframeBarFoo, "Iframe (origin Foo)", "HTML/JS", "🔴")
-  Container(iframeBarBar, "Iframe (origin Bar)", "HTML/JS", "🟢")
-}
-
-
-UpdateElementStyle(mainWindowFoo, $borderColor="blue", $textColor="blue", $fontColor="blue")
-UpdateElementStyle(iframeFooFoo, $bgColor="blue")
-UpdateElementStyle(iframeBarFoo, $bgColor="blue")
-
-UpdateElementStyle(mainWindowBar, $borderColor="teal", $textColor="teal", $fontColor="teal")
-UpdateElementStyle(iframeFooBar, $bgColor="teal")
-UpdateElementStyle(iframeBarBar, $bgColor="teal")
-
-
-
-```
+![Threat Model of the Web Browser](threat-model-poc.png)
 
