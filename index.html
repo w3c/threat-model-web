@@ -1,0 +1,622 @@
+<!doctype html><html lang="en">
+ <head>
+  <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+  <title>Threat Model for the Web</title>
+  <meta content="ED" name="w3c-status">
+  <link href="https://www.w3.org/StyleSheets/TR/2021/W3C-ED" rel="stylesheet">
+  <meta content="Bikeshed version 0ef803fdf, updated Tue Jan 6 11:59:39 2026 -0800" name="generator">
+  <link href="http://w3c.github.io/threat-model-web/" rel="canonical">
+  <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
+  <meta content="8131f26a4b93b77a00704dcb78edc3ea3ef5b413" name="revision">
+  <meta content="dark light" name="color-scheme">
+  <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
+<style>/* Boilerplate: style-autolinks */
+.css.css, .property.property, .descriptor.descriptor {
+    color: var(--a-normal-text);
+    font-size: inherit;
+    font-family: inherit;
+}
+.css::before, .property::before, .descriptor::before {
+    content: "‘";
+}
+.css::after, .property::after, .descriptor::after {
+    content: "’";
+}
+.property, .descriptor {
+    /* Don't wrap property and descriptor names */
+    white-space: nowrap;
+}
+.type { /* CSS value <type> */
+    font-style: italic;
+}
+pre .property::before, pre .property::after {
+    content: "";
+}
+[data-link-type="property"]::before,
+[data-link-type="propdesc"]::before,
+[data-link-type="descriptor"]::before,
+[data-link-type="value"]::before,
+[data-link-type="function"]::before,
+[data-link-type="at-rule"]::before,
+[data-link-type="selector"]::before,
+[data-link-type="maybe"]::before {
+    content: "‘";
+}
+[data-link-type="property"]::after,
+[data-link-type="propdesc"]::after,
+[data-link-type="descriptor"]::after,
+[data-link-type="value"]::after,
+[data-link-type="function"]::after,
+[data-link-type="at-rule"]::after,
+[data-link-type="selector"]::after,
+[data-link-type="maybe"]::after {
+    content: "’";
+}
+
+[data-link-type].production::before,
+[data-link-type].production::after,
+.prod [data-link-type]::before,
+.prod [data-link-type]::after {
+    content: "";
+}
+
+[data-link-type=element],
+[data-link-type=element-attr] {
+    font-family: Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    font-size: .9em;
+}
+[data-link-type=element]::before { content: "<" }
+[data-link-type=element]::after  { content: ">" }
+
+[data-link-type=biblio] {
+    white-space: pre;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --selflink-text: black;
+        --selflink-bg: silver;
+        --selflink-hover-text: white;
+    }
+}
+</style>
+<style>/* Boilerplate: style-colors */
+/* Any --*-text not paired with a --*-bg is assumed to have a transparent bg */
+:root {
+    color-scheme: light dark;
+
+    --text: black;
+    --bg: white;
+
+    --unofficial-watermark: url(https://www.w3.org/StyleSheets/TR/2016/logos/UD-watermark);
+
+    --logo-bg: #1a5e9a;
+    --logo-active-bg: #c00;
+    --logo-text: white;
+
+    --tocnav-normal-text: #707070;
+    --tocnav-normal-bg: var(--bg);
+    --tocnav-hover-text: var(--tocnav-normal-text);
+    --tocnav-hover-bg: #f8f8f8;
+    --tocnav-active-text: #c00;
+    --tocnav-active-bg: var(--tocnav-normal-bg);
+
+    --tocsidebar-text: var(--text);
+    --tocsidebar-bg: #f7f8f9;
+    --tocsidebar-shadow: rgba(0,0,0,.1);
+    --tocsidebar-heading-text: hsla(203,20%,40%,.7);
+
+    --toclink-text: var(--text);
+    --toclink-underline: #3980b5;
+    --toclink-visited-text: var(--toclink-text);
+    --toclink-visited-underline: #054572;
+
+    --heading-text: #005a9c;
+
+    --hr-text: var(--text);
+
+    --algo-border: #def;
+
+    --del-text: red;
+    --del-bg: transparent;
+    --ins-text: #080;
+    --ins-bg: transparent;
+
+    --a-normal-text: #034575;
+    --a-normal-underline: #bbb;
+    --a-visited-text: var(--a-normal-text);
+    --a-visited-underline: #707070;
+    --a-hover-bg: rgba(75%, 75%, 75%, .25);
+    --a-active-text: #c00;
+    --a-active-underline: #c00;
+
+    --blockquote-border: silver;
+    --blockquote-bg: transparent;
+    --blockquote-text: currentcolor;
+
+    --issue-border: #e05252;
+    --issue-bg: #fbe9e9;
+    --issue-text: var(--text);
+    --issueheading-text: #831616;
+
+    --example-border: #e0cb52;
+    --example-bg: #fcfaee;
+    --example-text: var(--text);
+    --exampleheading-text: #574b0f;
+
+    --note-border: #52e052;
+    --note-bg: #e9fbe9;
+    --note-text: var(--text);
+    --noteheading-text: hsl(120, 70%, 30%);
+    --notesummary-underline: silver;
+
+    --assertion-border: #aaa;
+    --assertion-bg: #eee;
+    --assertion-text: black;
+
+    --advisement-border: orange;
+    --advisement-bg: #fec;
+    --advisement-text: var(--text);
+    --advisementheading-text: #b35f00;
+
+    --warning-border: red;
+    --warning-bg: hsla(40,100%,50%,0.95);
+    --warning-text: var(--text);
+
+    --amendment-border: #330099;
+    --amendment-bg: #F5F0FF;
+    --amendment-text: var(--text);
+    --amendmentheading-text: #220066;
+
+    --def-border: #8ccbf2;
+    --def-bg: #def;
+    --def-text: var(--text);
+    --defrow-border: #bbd7e9;
+
+    --datacell-border: silver;
+
+    --indexinfo-text: #707070;
+
+    --indextable-hover-text: black;
+    --indextable-hover-bg: #f7f8f9;
+
+    --outdatedspec-bg: rgba(0, 0, 0, .5);
+    --outdatedspec-text: black;
+    --outdated-bg: maroon;
+    --outdated-text: white;
+    --outdated-shadow: red;
+
+    --editedrec-bg: darkorange;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text: #ddd;
+        --bg: black;
+
+        --unofficial-watermark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cg fill='%23100808' transform='translate(200 200) rotate(-45) translate(-200 -200)' stroke='%23100808' stroke-width='3'%3E%3Ctext x='50%25' y='220' style='font: bold 70px sans-serif; text-anchor: middle; letter-spacing: 6px;'%3EUNOFFICIAL%3C/text%3E%3Ctext x='50%25' y='305' style='font: bold 70px sans-serif; text-anchor: middle; letter-spacing: 6px;'%3EDRAFT%3C/text%3E%3C/g%3E%3C/svg%3E");
+
+        --logo-bg: #1a5e9a;
+        --logo-active-bg: #c00;
+        --logo-text: white;
+
+        --tocnav-normal-text: #999;
+        --tocnav-normal-bg: var(--bg);
+        --tocnav-hover-text: var(--tocnav-normal-text);
+        --tocnav-hover-bg: #080808;
+        --tocnav-active-text: #f44;
+        --tocnav-active-bg: var(--tocnav-normal-bg);
+
+        --tocsidebar-text: var(--text);
+        --tocsidebar-bg: #080808;
+        --tocsidebar-shadow: rgba(255,255,255,.1);
+        --tocsidebar-heading-text: hsla(203,20%,40%,.7);
+
+        --toclink-text: var(--text);
+        --toclink-underline: #6af;
+        --toclink-visited-text: var(--toclink-text);
+        --toclink-visited-underline: #054572;
+
+        --heading-text: #8af;
+
+        --hr-text: var(--text);
+
+        --algo-border: #456;
+
+        --del-text: #f44;
+        --del-bg: transparent;
+        --ins-text: #4a4;
+        --ins-bg: transparent;
+
+        --a-normal-text: #6af;
+        --a-normal-underline: #555;
+        --a-visited-text: var(--a-normal-text);
+        --a-visited-underline: var(--a-normal-underline);
+        --a-hover-bg: rgba(25%, 25%, 25%, .2);
+        --a-active-text: #f44;
+        --a-active-underline: var(--a-active-text);
+
+        --borderedblock-bg: rgba(255, 255, 255, .05);
+
+        --blockquote-border: silver;
+        --blockquote-bg: var(--borderedblock-bg);
+        --blockquote-text: currentcolor;
+
+        --issue-border: #e05252;
+        --issue-bg: var(--borderedblock-bg);
+        --issue-text: var(--text);
+        --issueheading-text: hsl(0deg, 70%, 70%);
+
+        --example-border: hsl(50deg, 90%, 60%);
+        --example-bg: var(--borderedblock-bg);
+        --example-text: var(--text);
+        --exampleheading-text: hsl(50deg, 70%, 70%);
+
+        --note-border: hsl(120deg, 100%, 35%);
+        --note-bg: var(--borderedblock-bg);
+        --note-text: var(--text);
+        --noteheading-text: hsl(120, 70%, 70%);
+        --notesummary-underline: silver;
+
+        --assertion-border: #444;
+        --assertion-bg: var(--borderedblock-bg);
+        --assertion-text: var(--text);
+
+        --advisement-border: orange;
+        --advisement-bg: #222218;
+        --advisement-text: var(--text);
+        --advisementheading-text: #f84;
+
+        --warning-border: red;
+        --warning-bg: hsla(40,100%,20%,0.95);
+        --warning-text: var(--text);
+
+        --amendment-border: #330099;
+        --amendment-bg: #080010;
+        --amendment-text: var(--text);
+        --amendmentheading-text: #cc00ff;
+
+        --def-border: #8ccbf2;
+        --def-bg: #080818;
+        --def-text: var(--text);
+        --defrow-border: #136;
+
+        --datacell-border: silver;
+
+        --indexinfo-text: #aaa;
+
+        --indextable-hover-text: var(--text);
+        --indextable-hover-bg: #181818;
+
+        --outdatedspec-bg: rgba(255, 255, 255, .5);
+        --outdatedspec-text: black;
+        --outdated-bg: maroon;
+        --outdated-text: white;
+        --outdated-shadow: red;
+
+        --editedrec-bg: darkorange;
+    }
+    /* In case a transparent-bg image doesn't expect to be on a dark bg,
+       which is quite common in practice... */
+    img { background: white; }
+}
+</style>
+<style>/* Boilerplate: style-counters */
+body {
+    counter-reset: example figure issue;
+}
+.issue {
+    counter-increment: issue;
+}
+.issue:not(.no-marker)::before {
+    content: "Issue " counter(issue);
+}
+
+.example {
+    counter-increment: example;
+}
+.example:not(.no-marker)::before {
+    content: "Example " counter(example);
+}
+.invalid.example:not(.no-marker)::before,
+.illegal.example:not(.no-marker)::before {
+    content: "Invalid Example " counter(example);
+}
+
+figcaption {
+    counter-increment: figure;
+}
+figcaption:not(.no-marker)::before {
+    content: "Figure " counter(figure) " ";
+}
+</style>
+<style>/* Boilerplate: style-issues */
+a[href].issue-return {
+    float: right;
+    float: inline-end;
+    color: var(--issueheading-text);
+    font-weight: bold;
+    text-decoration: none;
+}
+</style>
+<style>/* Boilerplate: style-md-lists */
+/* This is a weird hack for me not yet following the commonmark spec
+   regarding paragraph and lists. */
+[data-md] > :first-child {
+    margin-top: 0;
+}
+[data-md] > :last-child {
+    margin-bottom: 0;
+}
+</style>
+<style>/* Boilerplate: style-selflinks */
+:root {
+    --selflink-text: white;
+    --selflink-bg: gray;
+    --selflink-hover-text: black;
+}
+.heading, .issue, .note, .example, li, dt {
+    position: relative;
+}
+a.self-link {
+    position: absolute;
+    top: 0;
+    left: calc(-1 * (3.5rem - 26px));
+    width: calc(3.5rem - 26px);
+    height: 2em;
+    text-align: center;
+    border: none;
+    transition: opacity .2s;
+    opacity: .5;
+}
+a.self-link:hover {
+    opacity: 1;
+}
+.heading > a.self-link {
+    font-size: 83%;
+}
+.example > a.self-link,
+.note > a.self-link,
+.issue > a.self-link {
+    /* These blocks are overflow:auto, so positioning outside
+       doesn't work. */
+    left: auto;
+    right: 0;
+}
+li > a.self-link {
+    left: calc(-1 * (3.5rem - 26px) - 2em);
+}
+dfn > a.self-link {
+    top: auto;
+    left: auto;
+    opacity: 0;
+    width: 1.5em;
+    height: 1.5em;
+    background: var(--selflink-bg);
+    color: var(--selflink-text);
+    font-style: normal;
+    transition: opacity .2s, background-color .2s, color .2s;
+}
+dfn:hover > a.self-link {
+    opacity: 1;
+}
+dfn > a.self-link:hover {
+    color: var(--selflink-hover-text);
+}
+
+a.self-link::before            { content: "¶"; }
+.heading > a.self-link::before { content: "§"; }
+dfn > a.self-link::before      { content: "#"; }
+</style>
+ <body class="h-entry">
+  <div class="head">
+   <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/">
+    <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72">
+</a>
+</p>
+   <h1 class="no-ref p-name" id="title">Threat Model for the Web</h1>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types/#ED">Editor’s Draft</a>,
+    <time class="dt-updated" datetime="2026-03-13">13 March 2026</time></p>
+   <details open>
+    <summary>More details about this document</summary>
+    <div data-fill-with="spec-metadata">
+     <dl>
+      <dt>This version:
+      <dd><a class="u-url" href="http://w3c.github.io/threat-model-web/">http://w3c.github.io/threat-model-web/</a>
+      <dt>Feedback:
+      <dd><span><a href="mailto:public-security@w3.org?subject=%5Bthreat-model-web%5D%20YOUR%20TOPIC%20HERE">public-security@w3.org</a> with subject line “<kbd>[threat-model-web] <i data-lt>… message topic …</i></kbd>” (<a href="https://lists.w3.org/Archives/Public/public-security/" rel="discussion">archives</a>)</span>
+      <dt class="editor">Editors:
+      <dd class="editor h-card p-author vcard" data-editor-id="38211"><a class="email fn p-name u-email" href="mailto:simone@w3.org">Simone Onofri</a> (<span class="org p-org">W3C</span>)
+      <dd class="editor h-card p-author vcard" data-editor-id="97261"><a class="email fn p-name u-email" href="mailto:joe@legreq.com">Joe Andrieu</a> (<a class="org p-org" href="https://legreq.com">Legendary Requirements</a>)
+      <dd class="editor h-card p-author vcard" data-editor-id="171320"><a class="email fn p-name u-email" href="mailto:gcorti@fbk.eu">Giovanni Corti</a> (<a class="org p-org" href="https://fbk.eu">Invited Expert</a>)
+     </dl>
+    </div>
+   </details>
+   <div data-fill-with="warning"></div>
+   <p class="copyright" data-fill-with="copyright"><a href="https://www.w3.org/policies/#copyright">Copyright</a> © 2026 <a href="https://www.w3.org/">World Wide Web Consortium</a>. <abbr title="World Wide Web Consortium">W3C</abbr><sup>®</sup> <a href="https://www.w3.org/policies/#Legal_Disclaimer">liability</a>, <a href="https://www.w3.org/policies/#W3C_Trademarks">trademark</a> and <a href="https://www.w3.org/copyright/software-license/" rel="license" title="W3C Software and Document License">permissive document license</a> rules apply.
+</p>
+   <hr title="Separator for header">
+  </div>
+  <div class="p-summary" data-fill-with="abstract">
+   <h2 class="heading no-num no-ref no-toc settled" id="abstract"><span class="content">Abstract</span></h2>
+   <p>This document describes the Threat Model for the Web and include the Web Security Model and may include the goals that have not yet been achieved across the whole web platform, but which will still be applied in reviews of new and changed specifications.</p>
+  </div>
+  <h2 class="heading no-num no-ref no-toc settled" id="sotd"><span class="content">Status of this document</span></h2>
+  <div data-fill-with="status">
+   <p></p>
+  </div>
+  <div data-fill-with="at-risk"></div>
+  <nav data-fill-with="table-of-contents" id="toc">
+   <h2 class="no-num no-ref no-toc" id="contents">Table of Contents</h2>
+   <ol class="toc">
+    <li>
+     <a href="#what-are-we-building"><span class="secno">1</span> <span class="content">What are we building?</span></a>
+     <ol class="toc">
+      <li><a href="#use-scenario"><span class="secno">1.1</span> <span class="content">Use Scenario</span></a>
+      <li><a href="#components"><span class="secno">1.2</span> <span class="content">Components</span></a>
+      <li><a href="#external-dependencies"><span class="secno">1.3</span> <span class="content">External Dependencies</span></a>
+      <li><a href="#entry-points"><span class="secno">1.4</span> <span class="content">Entry Points</span></a>
+      <li><a href="#assets"><span class="secno">1.5</span> <span class="content">Assets</span></a>
+      <li><a href="#threat-sources"><span class="secno">1.6</span> <span class="content">Threat sources</span></a>
+      <li><a href="#high-level-threats"><span class="secno">1.7</span> <span class="content">High-level Threats</span></a>
+      <li><a href="#security-features"><span class="secno">1.8</span> <span class="content">Security Features</span></a>
+      <li>
+       <a href="#data-flow-diagram"><span class="secno">1.9</span> <span class="content">Data Flow Diagram</span></a>
+       <ol class="toc">
+        <li><a href="#main-browser-components"><span class="secno">1.9.1</span> <span class="content">Main Browser Components</span></a>
+       </ol>
+     </ol>
+   </ol>
+  </nav>
+  <main>
+   <h2 class="heading settled" data-level="1" id="what-are-we-building"><span class="secno">1. </span><span class="content">What are we building?</span><a class="self-link" href="#what-are-we-building"></a></h2>
+   <h3 class="heading settled" data-level="1.1" id="use-scenario"><span class="secno">1.1. </span><span class="content">Use Scenario</span><a class="self-link" href="#use-scenario"></a></h3>
+   <p>The Web Platform is a collection of open (royalty-free) technologies that enable the Web. As a platform, users interact with websites using their user agent (e.g., a Web Browser).</p>
+   <p>Websites contain a series of file formats, such as HTML, CSS, fonts, multimedia files, and scripts, that are transmitted from the server to the user’s device, interpreted, and rendered by the browser so the user can use them.
+The web browser is a critical and widely used gateway for accessing the web. It is increasingly relied upon as the single most important application for work, forming the basis of browser-centric workflows.</p>
+   <p>However, the Web Platform presents significant security and privacy challenges. The web browser, designed to request and execute instructions from arbitrary locations on the Internet, must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.</p>
+   <h3 class="heading settled" data-level="1.2" id="components"><span class="secno">1.2. </span><span class="content">Components</span><a class="self-link" href="#components"></a></h3>
+   <p>Main components of a Web Browser:</p>
+   <ul>
+    <li data-md>
+     <p><strong>Browser Kernel</strong>: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, it includes networking capabilities. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.</p>
+    <li data-md>
+     <p><strong>Rendering Engine</strong>: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...)</p>
+    <li data-md>
+     <p><strong>Browser Extensions</strong>: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.</p>
+    <li data-md>
+     <p><strong>Storage</strong> Browsers offer various mechanisms for storing data locally on a user’s device, which vary in lifetime and capacity.</p>
+     <ul>
+      <li data-md>
+       <p><strong>Cookies</strong> are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize them. The <strong>Cookie Jar</strong> is the browser’s local database for storing cookie information.</p>
+      <li data-md>
+       <p><strong>localStorage</strong> allows for the persistent storage of key-value pairs accessible within the same origin, often used for non-sensitive data like user preferences or themes.</p>
+      <li data-md>
+       <p><strong>sessionStorage</strong> functions similarly to localStorage, but the data is only available for the page session duration and expires when the browser tab is closed.</p>
+      <li data-md>
+       <p><strong>IndexedDB</strong> is another mechanism that origins can use to store information.</p>
+     </ul>
+    <li data-md>
+     <p><strong>JavaScript Engine/Interpreter</strong>: JavaScript is a general-purpose scripting language. It allows limited interaction with the host environment through predefined methods and properties that map to native code inside the browser.</p>
+    <li data-md>
+     <p><strong>Web APIs/Browser API</strong> are interfaces with functionalities available to Web Developers.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.3" id="external-dependencies"><span class="secno">1.3. </span><span class="content">External Dependencies</span><a class="self-link" href="#external-dependencies"></a></h3>
+   <p>The web browser operates within an ecosystem that includes several external dependencies, systems, or entities it interacts with or relies upon:</p>
+   <ul>
+    <li data-md>
+     <p><strong>Operating System (OS)</strong>: The browser runs with privileges granted by the OS, equivalent to user privileges. Browser security goals must manifest correctly between tabs, websites, and the OS. The OS provides a higher level of security against direct network connections than browsers.</p>
+    <li data-md>
+     <p><strong>Network/Internet</strong>: The browser’s primary function involves requesting instructions and content from arbitrary locations on the Internet. This relies on the underlying network protocols like TCP/IP, which the browser presumably trusts. The decentralised nature of the internet means unencrypted data is likely being read by someone.</p>
+    <li data-md>
+     <p><strong>Web Servers and their backend</strong>: These are the primary source of content, instructions (scripts, HTML), and resources for the browser. The browser must surrender control and execute commands provided by the server. A web server can also reduce a browser’s security. Websites interact with databases, off-site storage, and corporate data centres. Data flows between the browser context and these backend systems.</p>
+    <li data-md>
+     <p><strong>Third Parties/Other Origins</strong>: Modern web applications often include resources and scripts from other origins, which must also be executed. Websites may depend on third parties for ads, analytics, or authentication databases.</p>
+    <li data-md>
+     <p><strong>Native Applications</strong>: Other applications installed on the user’s system can potentially access browser assets directly (e.g., via file system or memory inspection).</p>
+    <li data-md>
+     <p><strong>Cryptography</strong>: The use of and interaction with cryptographic protocols, although not specifically an input, is a category of threats to be taken into account, particularly at this moment in history in relation to the transition to post-quantum cryptography.</p>
+    <li data-md>
+     <p><strong>External Components/Systems</strong>: Any external dependency on components or systems can impact the browser’s security.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.4" id="entry-points"><span class="secno">1.4. </span><span class="content">Entry Points</span><a class="self-link" href="#entry-points"></a></h3>
+   <p>Entry points are interfaces or mechanisms through which an adversary can interact with or supply data to the system. For a web browser, these include:</p>
+   <ul>
+    <li data-md>
+     <p><strong>The Browser UI</strong>: The user interface itself, where user input is provided. It includes also Trusted UI.</p>
+    <li data-md>
+     <p><strong>Network Interfaces</strong>: Ports and protocols the browser uses to communicate over the network (e.g., Sockets, RPC, HTTP/HTTPS ports).</p>
+    <li data-md>
+     <p><strong>Web Content (HTML, CSS, Fonts, Scripts, Media)</strong>: Malicious code, scripts, or content delivered from web servers. The browser runs code from untrusted sources when presented with scripts. An adversary can convince the browser to render malicious content. Specific threats are linked to the specific file formats.</p>
+    <li data-md>
+     <p><strong>User Input Fields</strong>: Any area where users can input data, which can be manipulated maliciously (e.g., forms, URLs).</p>
+    <li data-md>
+     <p><strong>Browser Extensions</strong>: The browser exposes interfaces for extensions to interact with the browser and web content.</p>
+    <li data-md>
+     <p><strong>Web APIs</strong>: Both standard web APIs and potentially new, interesting APIs the browser exposes.</p>
+    <li data-md>
+     <p><strong>Underlying Platform</strong>: Features allowing an origin to send data to the underlying platform.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.5" id="assets"><span class="secno">1.5. </span><span class="content">Assets</span><a class="self-link" href="#assets"></a></h3>
+   <p>The assets that need to be protected when considering the web browser threat model are diverse and critical to user security and privacy:</p>
+   <ul>
+    <li data-md>
+     <p><strong>User Data</strong>: General user data, sensitive data, and personally identifying information.</p>
+    <li data-md>
+     <p><strong>User Data Privacy</strong>: The ability of users to control and protect their private information and activities from surveillance, correlation, and identification. This includes avoiding identifying or correlating within and across browsing sessions without transparency or control.</p>
+    <li data-md>
+     <p><strong>User Credentials</strong>: Login information, usernames, and passwords.</p>
+    <li data-md>
+     <p><strong>User Cookies and Session Information</strong>: Data stored in cookies, session IDs, and session state. These can be used to recognize users across visits.</p>
+    <li data-md>
+     <p><strong>User Device/Computer</strong>: The user’s machine and its resources, including the confidentiality and integrity of the user’s file system.</p>
+    <li data-md>
+     <p><strong>Local Storage</strong>: Data stored locally by the browser, including cookies, localStorage, indexedDB, cache, history, and passwords.</p>
+    <li data-md>
+     <p><strong>User Browsing History</strong>: Information about sites visited.</p>
+    <li data-md>
+     <p><strong>User Environment Information</strong>: Operating system configuration, browser configuration, hardware capabilities.</p>
+    <li data-md>
+     <p><strong>User Activities and Interests</strong>: Purchasing preferences, personal characteristics, and prior activities.</p>
+    <li data-md>
+     <p><strong>Protected Resources</strong>: Any resource the user can access that should not be accessed by an adversary.</p>
+    <li data-md>
+     <p><strong>Private Network Resources</strong>: These are different network resources that the browser can access without the user’s explicit request.</p>
+    <li data-md>
+     <p><strong>Credentials and Encryption Keys</strong>: The browser manages Public and secret keys for encryption and signing.</p>
+    <li data-md>
+     <p><strong>Confidential Information on Websites</strong>: Data displayed or accessible on websites.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.6" id="threat-sources"><span class="secno">1.6. </span><span class="content">Threat sources</span><a class="self-link" href="#threat-sources"></a></h3>
+   <ul>
+    <li data-md>
+     <p><strong>Browser Extensions</strong>: Browser extensions introduce numerous security vulnerabilities despite their utility. Malicious actors exploit them for sophisticated attacks like phishing, keylogging, spying, data theft, and session hijacking. They need to be installed and configured to have the permission to access a specific origin, which increases the complexity of the attack.</p>
+    <li data-md>
+     <p><strong>Applications/Websites</strong>: Websites can be compromised and malicious. Different attacks can be directed to compromise the user’s session on the same website (e.g., stealing cookies, or generating arbitrary requests - Cross Site Request Forgery - CSRF, UI Redressing/Clickjacking), bypass the same origin and get information from different websites (i.e. _Cross-Site Leaks - XS Leaks_), or compromise the Browser itself (e.g., running arbitrary code into the browser processes to obtain control of the data inside the browser or to compromise the user device). Adversaries exploit existing browser functionality.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.7" id="high-level-threats"><span class="secno">1.7. </span><span class="content">High-level Threats</span><a class="self-link" href="#high-level-threats"></a></h3>
+   <ul>
+    <li data-md>
+     <p><strong>Tracking/Privacy Loss</strong>: Fingerprinting is a method of identification of the users without their knowledge or consent. Fingerprinting touches on both privacy and security issues, has a dual significance. On the one hand, it can be used by an adversary to uniquely identify a user (a scenario normally related to privacy) i.e., allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. On the other hand, it can be used to identify the type of device (a scenario normally related to security, for example for the subsequent compromise of the device). Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting. Some APIs can add fingerprinting surface.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.8" id="security-features"><span class="secno">1.8. </span><span class="content">Security Features</span><a class="self-link" href="#security-features"></a></h3>
+   <p>Web browsers employ a variety of security features and protection mechanisms to defend against threats:</p>
+   <ul>
+    <li data-md>
+     <p><strong>Sandboxing</strong>: Sandboxing is a key mechanism for confining components like the rendering engine, restricting their access to the operating system and user files. It acts as a barrier between OS privileges and subprocess privileges.</p>
+    <li data-md>
+     <p><strong>Same Origin Policy (SOP)</strong>: A fundamental security control that restricts how a document or script loaded from one origin can interact with a resource from another origin.</p>
+    <li data-md>
+     <p><strong>Content Security Policy (CSP)</strong>: A security standard to prevent XSS, clickjacking, and other code injection attacks by specifying which dynamic resources can load.</p>
+    <li data-md>
+     <p><strong>HTTPS/SSL/TLS</strong>: Protocols for secure, encrypted communication between the browser and web servers, ensuring data integrity and confidentiality in transit. HTTP Strict Transport Security (HSTS) is related.</p>
+    <li data-md>
+     <p><strong>Input Validation and Output Encoding</strong>: These are crucial practices for handling user-supplied data to prevent injection attacks like XSS.</p>
+    <li data-md>
+     <p><strong>Security Headers</strong>: HTTP headers instruct browsers on handling content securely.</p>
+    <li data-md>
+     <p><strong>Anti-Phishing and Anti-Malware</strong>: Features like Safe Browsing warn users about malicious websites.</p>
+    <li data-md>
+     <p><strong>Mixed Content Handling</strong>: How the browser treats secure (HTTPS) pages that load insecure (HTTP) resources.</p>
+    <li data-md>
+     <p><strong>Renderer Isolation</strong>: Architectures that place complex, error-prone components like the rendering engine in a separate, sandboxed process or protection domain from the browser kernel. The browser kernel handles sensitive OS, network, and storage interactions.</p>
+    <li data-md>
+     <p><strong>Inter-process Communication (IPC)</strong>: Secure channels for communication between isolated browser components (e.g., kernel and renderer).</p>
+    <li data-md>
+     <p><strong>Download Manager</strong>: Component handling file downloads, potentially including security checks.</p>
+    <li data-md>
+     <p><strong>Data Minimization and Privacy Settings</strong>: Design principles and configurations to reduce the exposure of potentially identifying information.</p>
+    <li data-md>
+     <p><strong>Trusted UI</strong>: Ensuring sensitive user interactions occur within browser interfaces that web content cannot easily spoof or manipulate.</p>
+    <li data-md>
+     <p><strong>Permission API</strong>: Asking the user before the activation of a powerful feature</p>
+    <li data-md>
+     <p><strong>Transient Activation</strong>: It is a gate, a window state that indicates a user has recently pressed a button, moved a mouse, used a menu, or performed some other user interaction. Sometimes used as a mechanism for ensuring that a web API can only function if triggered by user interaction. For example, scripts cannot arbitrarily launch a popup that requires transient activation ⁠— it must be triggered from a UI element’s event handler.</p>
+   </ul>
+   <h3 class="heading settled" data-level="1.9" id="data-flow-diagram"><span class="secno">1.9. </span><span class="content">Data Flow Diagram</span><a class="self-link" href="#data-flow-diagram"></a></h3>
+   <h4 class="heading settled" data-level="1.9.1" id="main-browser-components"><span class="secno">1.9.1. </span><span class="content">Main Browser Components</span><a class="self-link" href="#main-browser-components"></a></h4>
+   <p>The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.</p>
+   <p>!<a href="images/threat-model-poc.png">Threat Model of the Web Browser</a></p>
+  </main>
+  <script src="https://www.w3.org/scripts/TR/2021/fixup.js"></script>
