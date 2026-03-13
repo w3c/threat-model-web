@@ -123,7 +123,7 @@ Web browsers employ a variety of security features and protection mechanisms to 
 
 ## Data Flow Diagram
 
-### Main Browser Components
+### Main Web Browser Components
 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
