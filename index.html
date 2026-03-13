@@ -8,7 +8,7 @@
   <meta content="Bikeshed version 0ef803fdf, updated Tue Jan 6 11:59:39 2026 -0800" name="generator">
   <link href="http://w3c.github.io/threat-model-web/" rel="canonical">
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
-  <meta content="397af1334fc0c64dbf95bd8f494324508be90ede" name="revision">
+  <meta content="06917fb170d1592d39d3ee05e39ccbf2bc7e4720" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -476,6 +476,8 @@ dfn > a.self-link::before      { content: "#"; }
    <p>Websites contain a series of file formats, such as HTML, CSS, fonts, multimedia files, and scripts, that are transmitted from the server to the user’s device, interpreted, and rendered by the browser so the user can use them.
 The web browser is a critical and widely used gateway for accessing the web. It is increasingly relied upon as the single most important application for work, forming the basis of browser-centric workflows.</p>
    <p>However, the Web Platform presents significant security and privacy challenges for the Web Browser, which is designed to request and execute instructions from arbitrary locations on the Internet, and it must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.</p>
+   <p>Therefore, a Web Security Model—which defines the logic of web security — that can be characterized by the centrality of the concept of origin and isolation. These concepts are enshrined as part of the underlying logic in web specifications and are subsequently implemented in the various components of Web User Agents. Web browsers are a type of Web User Agent.</p>
+   <p>That’s why it’s interesting to analyze the threat model by abstracting the structure of a hypothetical web browser.</p>
    <h3 class="heading settled" data-level="1.2" id="web-browser-components"><span class="secno">1.2. </span><span class="content">Web Browser Components</span><a class="self-link" href="#web-browser-components"></a></h3>
    <p>Main components of a Web Browser:</p>
    <ul>
