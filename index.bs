@@ -31,6 +31,10 @@ The web browser is a critical and widely used gateway for accessing the web. It 
 
 However, the Web Platform presents significant security and privacy challenges for the Web Browser, which is designed to request and execute instructions from arbitrary locations on the Internet, and it must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
 
+Therefore, a Web Security Model—which defines the logic of web security — that can be characterized by the centrality of the concept of origin and isolation. These concepts are enshrined as part of the underlying logic in web specifications and are subsequently implemented in the various components of Web User Agents. Web browsers are a type of Web User Agent.
+
+That's why it's interesting to analyze the threat model by abstracting the structure of a hypothetical web browser.
+
 ## Web Browser Components
 
 Main components of a Web Browser:
