@@ -1,4 +1,11 @@
 <pre class=metadata>
+Title: Threat Model for the Web
+Status: ED
+Org: W3C
+Group: securityig
+ED: https://w3c.github.io/threat-modeling-guide/
+Shortname: threat-model-web
+Level: none
 Mailing List: public-security@w3.org
 Mailing List Archives: https://lists.w3.org/Archives/Public/public-security/
 Indent: 2
