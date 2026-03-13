@@ -1,10 +1,19 @@
+<pre>
+Mailing List: public-security@w3.org
+Mailing List Archives: https://lists.w3.org/Archives/Public/public-security/
+Indent: 2
+Editor: Simone Onofri, w3cid 38211, W3C, simone@w3.org
+Editor: Joe Andrieu, w3cid 97261, Legendary Requirements https://legreq.com, joe@legreq.com
+Editor: Giovanni Corti, w3cid 171320, Invited Expert https://fbk.eu, gcorti@fbk.eu
+Abstract:
+  This document describes the Threat Model for the Web and include the Web Security Model and may include the goals that have not yet been achieved across the whole web platform, but which will still be applied in reviews of new and changed specifications.
+Status: ED
+ED: http://w3c.github.io/threat-model-web/
+Markup Shorthands: markdown on, biblio yes
+Boilerplate: omit issues-index, omit conformance, repository-issue-tracking off
+</pre>
+
 # Threat Model for the Web Platform
-
-Editor: Simone Onofri (W3C)
-
-Editor: ⁨Joe Andreieu⁩ (Legendary Requirements)
-
-Editor: Alberto Fernandez-de-Retana (Invited Expert)
 
 ## What are we building?
 
@@ -110,5 +119,5 @@ Web browsers employ a variety of security features and protection mechanisms to 
 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
-![Threat Model of the Web Browser](threat-model-poc.png)
+![Threat Model of the Web Browser](images/threat-model-poc.png)
 
