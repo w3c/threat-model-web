@@ -29,9 +29,9 @@ The Web Platform is a collection of open (royalty-free) technologies that enable
 Websites contain a series of file formats, such as HTML, CSS, fonts, multimedia files, and scripts, that are transmitted from the server to the user's device, interpreted, and rendered by the browser so the user can use them.   
 The web browser is a critical and widely used gateway for accessing the web. It is increasingly relied upon as the single most important application for work, forming the basis of browser-centric workflows.
 
-However, the Web Platform presents significant security and privacy challenges. The web browser, designed to request and execute instructions from arbitrary locations on the Internet, must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
+However, the Web Platform presents significant security and privacy challenges for the Web Browser, which is designed to request and execute instructions from arbitrary locations on the Internet, and it must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
 
-## Components
+## Web Browser Components
 
 Main components of a Web Browser:
 
@@ -97,8 +97,7 @@ The assets that need to be protected when considering the web browser threat mod
 
 *   **Tracking/Privacy Loss**: Fingerprinting is a method of identification of the users without their knowledge or consent. Fingerprinting touches on both privacy and security issues, has a dual significance. On the one hand, it can be used by an adversary to uniquely identify a user (a scenario normally related to privacy) i.e., allowing parties to develop user profiles or histories across different sites, often without knowledge or consent. On the other hand, it can be used to identify the type of device (a scenario normally related to security, for example for the subsequent compromise of the device). Data exposed by specifications, especially information about the underlying platform or state that persists, can contribute to fingerprinting. Some APIs can add fingerprinting surface.
 
-
-## Security Features
+## Security Features and Invariants
 
 Web browsers employ a variety of security features and protection mechanisms to defend against threats:
 
@@ -124,5 +123,7 @@ Web browsers employ a variety of security features and protection mechanisms to 
 
 The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
 
-![Threat Model of the Web Browser](images/threat-model-poc.png)
-
+<figure id="threat-model">
+    <img src="images/images/threat-model-poc.png">
+    <figcaption>Data Flow Diagram (DFD)</figcaption>
+</figure>
