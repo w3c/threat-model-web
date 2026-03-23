@@ -8,7 +8,7 @@ Follows a curated list of resources.
 ## Security and Web Platform
 - [The Browser Hacker’s Handbook](https://www.wiley.com/en-us/The+Browser+Hacker's+Handbook-p-9781118662090)
 - [Tangled Web](https://nostarch.com/tangledweb)
-
+- [Securing the Web](https://www.w3.org/2001/tag/doc/web-https)
 
 ## Browsers
 - [The Security Architecture of the Chromium Browser](https://seclab.stanford.edu/websec/chromium/chromium-security-architecture.pdf)
