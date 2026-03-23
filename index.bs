@@ -11,7 +11,7 @@ Mailing List Archives: https://lists.w3.org/Archives/Public/public-security/
 Indent: 2
 Editor: Simone Onofri, w3cid 38211, W3C, simone@w3.org
 Editor: Joe Andrieu, w3cid 97261, Legendary Requirements https://legreq.com, joe@legreq.com
-Editor: Giovanni Corti, w3cid 171320, Invited Expert https://fbk.eu, gcorti@fbk.eu
+Editor: Giovanni Corti, w3cid 171320, FBK https://fbk.eu, gcorti@fbk.eu
 Abstract:
   This document describes the Threat Model for the Web and include the Web Security Model and may include the goals that have not yet been achieved across the whole web platform, but which will still be applied in reviews of new and changed specifications.
 Status: ED
