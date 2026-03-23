@@ -6,11 +6,13 @@ Follows a curated list of resources.
 
 
 ## Security and Web Platform
-- [The Browser Hacker’s Handbook](https://www.wiley.com/en-us/The+Browser+Hacker's+Handbook-p-9781118662090)
+- [Web Origin Concept](https://datatracker.ietf.org/doc/html/rfc6454)
+- [Ethical Web Principles](https://www.w3.org/2001/tag/doc/ethical-web-principles-20210927.html)
 - [Tangled Web](https://nostarch.com/tangledweb)
 - [Securing the Web](https://www.w3.org/2001/tag/doc/web-https)
 
 ## Browsers
+- [The Browser Hacker’s Handbook](https://www.wiley.com/en-us/The+Browser+Hacker's+Handbook-p-9781118662090)
 - [The Security Architecture of the Chromium Browser](https://seclab.stanford.edu/websec/chromium/chromium-security-architecture.pdf)
 - [Web Browser Security: Evolving Threats, Safeguards, and the Road Ahead](https://www.red-gate.com/simple-talk/featured/web-browser-security-evolving-threats-safeguards-and-the-road-ahead/)
 - [Browser Security Handbook](https://code.google.com/archive/p/browsersec/)
