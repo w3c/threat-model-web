@@ -39,16 +39,16 @@ That's why it's interesting to analyze the threat model by abstracting the struc
 
 Main components of a Web Browser:
 
-* **Browser Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, it includes networking capabilities. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
-* **Rendering Engine**: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...)
+* **Browser Kernel**: This component interacts with the operating system, manages persistent resources like the cookie and password databases, handles window management, and includes networking capabilities. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.
+* **Rendering Engine**: is an essential component in the browser ecosystem. It converts data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...)
 * **Browser Extensions**: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.
-* **Storage** Browsers offer various mechanisms for storing data locally on a user's device, which vary in lifetime and capacity.
-  - **Cookies** are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize them. The **Cookie Jar** is the browser's local database for storing cookie information.
+* **Storage**: Browsers offer various mechanisms for storing data locally on a user's device, which vary in lifetime and capacity.
+  - **Cookies** are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize experiences. The **Cookie Jar** is the browser's local database for storing cookie information.
   - **localStorage** allows for the persistent storage of key-value pairs accessible within the same origin, often used for non-sensitive data like user preferences or themes.
   - **sessionStorage** functions similarly to localStorage, but the data is only available for the page session duration and expires when the browser tab is closed.
-  - **IndexedDB** is another mechanism that origins can use to store information.
+  - **IndexedDB** is another mechanism that origins can use for persistent storage.
 * **JavaScript Engine/Interpreter**: JavaScript is a general-purpose scripting language. It allows limited interaction with the host environment through predefined methods and properties that map to native code inside the browser.
-* **Web APIs/Browser API** are interfaces with functionalities available to Web Developers.
+* **Web APIs/Browser API**: are interfaces with functionalities available to Web Developers.
 
 ## External Dependencies
 
@@ -56,7 +56,7 @@ The web browser operates within an ecosystem that includes several external depe
 
 *   **Operating System (OS)**: The browser runs with privileges granted by the OS, equivalent to user privileges. Browser security goals must manifest correctly between tabs, websites, and the OS. The OS provides a higher level of security against direct network connections than browsers.
 *   **Network/Internet**: The browser's primary function involves requesting instructions and content from arbitrary locations on the Internet. This relies on the underlying network protocols like TCP/IP, which the browser presumably trusts. The decentralised nature of the internet means unencrypted data is likely being read by someone.
-*   **Web Servers and their backend**: These are the primary source of content, instructions (scripts, HTML), and resources for the browser. The browser must surrender control and execute commands provided by the server. A web server can also reduce a browser's security. Websites interact with databases, off-site storage, and corporate data centres. Data flows between the browser context and these backend systems.
+*   **Web Servers and their backend**: These are the primary sources of content, instructions (scripts, HTML), and resources for the browser. The browser must surrender control and execute commands provided by the server. A web server can also reduce a browser's security. Websites interact with databases, off-site storage, and corporate data centres. Data flows between the browser context and these backend systems.
 *   **Third Parties/Other Origins**: Modern web applications often include resources and scripts from other origins, which must also be executed. Websites may depend on third parties for ads, analytics, or authentication databases.
 *   **Native Applications**: Other applications installed on the user's system can potentially access browser assets directly (e.g., via file system or memory inspection).
 *   **Cryptography**: The use of and interaction with cryptographic protocols, although not specifically an input, is a category of threats to be taken into account, particularly at this moment in history in relation to the transition to post-quantum cryptography.
