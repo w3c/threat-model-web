@@ -8,7 +8,7 @@
   <meta content="Bikeshed version 0ef803fdf, updated Tue Jan 6 11:59:39 2026 -0800" name="generator">
   <link href="http://w3c.github.io/threat-model-web/" rel="canonical">
   <link href="https://www.w3.org/2008/site/images/favicon.ico" rel="icon">
-  <meta content="a758d65d03a4e04f4e99930e9d38d3ec5617361f" name="revision">
+  <meta content="24074af3c2efea44a2b602bce41a4d4c25199ed8" name="revision">
   <meta content="dark light" name="color-scheme">
   <link href="https://www.w3.org/StyleSheets/TR/2021/dark.css" media="(prefers-color-scheme: dark)" rel="stylesheet" type="text/css">
 <style>/* Boilerplate: style-autolinks */
@@ -417,7 +417,7 @@ dfn > a.self-link::before      { content: "#"; }
 </p>
    <h1 class="no-ref p-name" id="title">Threat Model for the Web</h1>
    <p id="w3c-state"><a href="https://www.w3.org/standards/types/#ED">Editor’s Draft</a>,
-    <time class="dt-updated" datetime="2026-03-23">23 March 2026</time></p>
+    <time class="dt-updated" datetime="2026-03-25">25 March 2026</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -482,27 +482,27 @@ The web browser is a critical and widely used gateway for accessing the web. It 
    <p>Main components of a Web Browser:</p>
    <ul>
     <li data-md>
-     <p><strong>Browser Kernel</strong>: This component interacts with the operating system, manages persistent resources like the cookie and password databases, and handles window management, it includes networking capabilities. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.</p>
+     <p><strong>Browser Kernel</strong>: This component interacts with the operating system, manages persistent resources like the cookie and password databases, handles window management, and includes networking capabilities. The Browser Kernel is also responsible for managing multiple instances of the Rendering Engine and implements a security policy for how sandboxed rendering engines can interact with the operating system.</p>
     <li data-md>
-     <p><strong>Rendering Engine</strong>: is an essential component in the browser ecosystem. They convert data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...)</p>
+     <p><strong>Rendering Engine</strong>: is an essential component in the browser ecosystem. It converts data, such as HTML and images, often in combination with CSS, into a graphical format for presentation to the user on the screen. There are also non-HTML document types (e.g., plaintext files, bitmap images, audio and video, XML-based documents, SVG...)</p>
     <li data-md>
      <p><strong>Browser Extensions</strong>: Third-party creators develop Browser Extensions to enhance browser functionality by adding diverse features. They enable users to customize and improve their browsing experiences.</p>
     <li data-md>
-     <p><strong>Storage</strong> Browsers offer various mechanisms for storing data locally on a user’s device, which vary in lifetime and capacity.</p>
+     <p><strong>Storage</strong>: Browsers offer various mechanisms for storing data locally on a user’s device, which vary in lifetime and capacity.</p>
      <ul>
       <li data-md>
-       <p><strong>Cookies</strong> are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize them. The <strong>Cookie Jar</strong> is the browser’s local database for storing cookie information.</p>
+       <p><strong>Cookies</strong> are small files (up to 4KB) sent with each HTTP request to the server to manage sessions, track users, and personalize experiences. The <strong>Cookie Jar</strong> is the browser’s local database for storing cookie information.</p>
       <li data-md>
        <p><strong>localStorage</strong> allows for the persistent storage of key-value pairs accessible within the same origin, often used for non-sensitive data like user preferences or themes.</p>
       <li data-md>
        <p><strong>sessionStorage</strong> functions similarly to localStorage, but the data is only available for the page session duration and expires when the browser tab is closed.</p>
       <li data-md>
-       <p><strong>IndexedDB</strong> is another mechanism that origins can use to store information.</p>
+       <p><strong>IndexedDB</strong> is another mechanism that origins can use for persistent storage.</p>
      </ul>
     <li data-md>
      <p><strong>JavaScript Engine/Interpreter</strong>: JavaScript is a general-purpose scripting language. It allows limited interaction with the host environment through predefined methods and properties that map to native code inside the browser.</p>
     <li data-md>
-     <p><strong>Web APIs/Browser API</strong> are interfaces with functionalities available to Web Developers.</p>
+     <p><strong>Web APIs/Browser API</strong>: are interfaces with functionalities available to Web Developers.</p>
    </ul>
    <h3 class="heading settled" data-level="1.3" id="external-dependencies"><span class="secno">1.3. </span><span class="content">External Dependencies</span><a class="self-link" href="#external-dependencies"></a></h3>
    <p>The web browser operates within an ecosystem that includes several external dependencies, systems, or entities it interacts with or relies upon:</p>
@@ -512,7 +512,7 @@ The web browser is a critical and widely used gateway for accessing the web. It 
     <li data-md>
      <p><strong>Network/Internet</strong>: The browser’s primary function involves requesting instructions and content from arbitrary locations on the Internet. This relies on the underlying network protocols like TCP/IP, which the browser presumably trusts. The decentralised nature of the internet means unencrypted data is likely being read by someone.</p>
     <li data-md>
-     <p><strong>Web Servers and their backend</strong>: These are the primary source of content, instructions (scripts, HTML), and resources for the browser. The browser must surrender control and execute commands provided by the server. A web server can also reduce a browser’s security. Websites interact with databases, off-site storage, and corporate data centres. Data flows between the browser context and these backend systems.</p>
+     <p><strong>Web Servers and their backend</strong>: These are the primary sources of content, instructions (scripts, HTML), and resources for the browser. The browser must surrender control and execute commands provided by the server. A web server can also reduce a browser’s security. Websites interact with databases, off-site storage, and corporate data centres. Data flows between the browser context and these backend systems.</p>
     <li data-md>
      <p><strong>Third Parties/Other Origins</strong>: Modern web applications often include resources and scripts from other origins, which must also be executed. Websites may depend on third parties for ads, analytics, or authentication databases.</p>
     <li data-md>
