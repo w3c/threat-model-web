@@ -44,3 +44,4 @@ Follows a curated list of resources.
  - [Fingerprinting and Tracing Shadows: The Development and Impact of Browser Fingerprinting on Digital Privacy](https://arxiv.org/abs/2411.12045)
  - [XS-Leaks Wiki](https://xsleaks.dev)
  - [Tracking](https://albertofdr.github.io/web-security-class/advanced/web.tracking)
+ - [Peripheral Instinct: How External Devices Breach Browser Sandboxes](https://misc0110.net/web/files/peripheralinstinct_www25.pdf)
