@@ -573,7 +573,7 @@ This abstraction is useful because it makes visible several concepts:
     
 * The platform depends on **user-facing product choices** such as indicators, defaults, extension policy, and partitioning deployment for practical resistance to phishing, tracking, and confused delegation. ([W3C](https://www.w3.org/TR/wsc-ui/))
 
-## 9\. Threat Model
+### 9\. Threat Model
 
 * This threat model is organized as **target threats**, **implementation threats**, **external threats**, and **dependency threats**, because the platform is attacked both through web-content semantics and through the browser stack that realizes them. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
 
