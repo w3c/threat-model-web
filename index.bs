@@ -121,13 +121,990 @@ Web browsers employ a variety of security features and protection mechanisms to 
 *   **Permission API**: Asking the user before the activation of a powerful feature 
 *   **Transient Activation**: It is a gate, a window state that indicates a user has recently pressed a button, moved a mouse, used a menu, or performed some other user interaction. Sometimes used as a mechanism for ensuring that a web API can only function if triggered by user interaction. For example, scripts cannot arbitrarily launch a popup that requires transient activation ⁠— it must be triggered from a UI element's event handler.
 
-## Data Flow Diagram
+## Web Browser Threat Model
 
-### Main Web Browser Components
+### Web Browser Layer
 
-The diagram illustrates the data flow and interactions between core browser components, external entities, and specific elements like storage, extensions, and device sensors.
+The Web Browser Layer outlines recurring architectural roles in modern web browsers.
+
+This level of abstraction is used to represent the “user agent” or the “web browser” not as a single component, like in the Minimalist Web Threat Model, but how the implementation of a modern web browser distribute the responsibility across multiple processes with different privileges, different access to state, and different exposure to untrusted input, and how it enforce the web security model, including origin- and site-based isolation strategies and how the browser protect itself in computing input from external Web Servers.
+
+These two needs are related but not identical. A content process is isolated not only because web content is untrusted, but also because the browser must preserve same-origin isolation and the isolation between the browser and the OS/Platform.
+
+### Architecture
+
+Across Chromium, WebKit, and Firefox, the implementation details differ. Even so, a common structure emerges.
+
+#### Privileged browser process
+
+Modern browsers include a high-privilege control component responsible for browser UI, navigation control, process management, policy enforcement, permission mediation, and access brokering for sensitive local resources. Chromium refers to this as the **Browser process**. WebKit refers to the **UI process**. Firefox refers to the **Parent process**.
+
+This component should be treated as a primary trust anchor in the local browser architecture. It is where browser-managed policy is commonly enforced and where user-visible mediation typically occurs. For threat modeling purposes, this matters because the security implications of a decision depend in part on where it is made. A check performed in a privileged browser component is not equivalent to a check performed in a sandboxed content process.
+
+In the Web Browser DFD, this process is referred to as *"Browser / UI / Parent Process"*.
+
+#### Sandboxed web-content execution and rendering
+
+Web content is executed within processes like Chromium  **Renderer processes**. WebKit **WebContent, processes**. Firefox **Content processes**, each with distinct roles in managing untrusted input.
+
+These types of processes are exposed to untrusted web content. For that reason, they are modeled as execution environments that are expected to parse, interpret, and compute on untrusted input. Their value lies not in assuming that compromise is impossible, but in constraining what follows if compromise occurs. This is why the separation between privileged web browser mediation and web-content execution is one of the central trust boundaries in the web browser model. Similarly, each process is isolated by origin so that it cannot interfere during normal use or in the event of a compromise.
+
+In the Web Browser DFD, this process is referred to as *"Content / Renderer / WebContent Process"*.
+
+
+#### Network and storage
+
+Modern web browsers also separate, or at least mediate, networking and persistent state management. In Chromium, this role is associated with the **Network Service**, per-profile `NetworkContext` objects, and `StoragePartition`. In WebKit, the **Networking process** handles network access, disk cache, and browser-managed structured site data such as Web Storage and IndexedDB. In Firefox, networking and the persistent state are distributed differently, but there is still a distinction between the two.
+
+This layer is important because it is often where cookies, caches, partitioned state, and site-data boundaries are enforced: if a specification affects fetching, credentials, storage access, or response handling, it is likely to interact with this layer.
+
+In the Web Browser DFD, these are referred to as, respectively, *"Network / Socket / Networking Process"* and *"Data Store"*.
+
+
+#### Graphics, media, and Helper
+
+Modern web browsers also separate GPU, codec, and other helper functionality into separate processes, also because media libraries are a common attack surface. Chromium separates the **GPU process** and additional sandboxed helper-process families. Firefox separates a **GPU Process**, an **RDD Process**, a **GMP Process**, a **Utility Process**, and a **Network (Socket) Process**. WebKit also separates processes for related functionality.
+
+From a threat-modeling perspective, these helper processes are important because they sit at the boundary between untrusted content and complex implementation surfaces. This is also a general implementation pattern: untrusted execution or functionality prone to crashes is separated from the privileged control path to reduce impact if faults occur.
+
+In the Web Browser DFD, this process is referred to as *"GPU / Compositor / Media helper Process"*.
+
+
+### Data Flow Diagram
 
 <figure id="threat-model">
     <img src="images/DFD.svg">
     <figcaption>Data Flow Diagram (DFD)</figcaption>
 </figure>
+
+### Element dictionary
+
+#### External entities
+
+| ID | Name                              | Type            | Description                                                                                                                               |
+| -- | --------------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| E1 | User                              | External Entity | Human operator interacting with browser UI, prompts, tabs, and rendered content.                                                          |
+| E2 | Remote Web Origin(s)              | External Entity | Remote servers providing HTML, CSS, JS, media, APIs, identity endpoints, and other web resources.                                         |
+| E3 | Underlying Network Infrastructure | External Entity | Physical Infrastructure, Networking protocols, Network segmentations, Localhost.                                                          |
+| E4 | Operating System                  | External Entity | Filesystem, clipboard, camera, microphone, GPU drivers, media codecs, and related platform services outside the browser product boundary. |
+
+#### Threat Boundaries
+
+| ID    | Name                                               | Type            | Description                                                                                                                                      |
+| ----- | -------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| B1    | Web Browser Boundary                               | Threat Boundary | Separates browser-controlled elements from external entities and services.                                                                       |
+| B1.1  | Privileged Browser Process Boundary                | Threat Boundary | Separates privileged browser mediation from sandboxed content execution.                                                                         |
+| B1.2  | Sandboxed Content Execution and Rendering Boundary | Threat Boundary | Separates elements responsible for executing web content under reduced privilege and isolation constraints from one another.                     |
+| B1.3  | Web-Content Execution Processe Boundary            | Threat Boundary | Separates processes responsible for executing web content.                                                                                       |
+| B1.4  | Helper Services Boundary                           | Threat Boundary | Separates elements with helper roles such as networking, GPU, media, or related utility functionality from the rest of the browser architecture. |
+| B1.5  | Profile and Policy State Boundary                  | Threat Boundary | Separates browser-managed profile, session, settings, and permission metadata from the rest of the browser architecture.                         |
+| B1.6  | Site State Boundary                                | Threat Boundary | Separates browser-managed cookies, HTTP cache, web storage, IndexedDB, and related site data from the rest of the browser architecture.          |
+| B1.7  | Sandboxed Privileged Content Execution Boundary    | Threat Boundary | Separates sandboxed privileged execution context for internal pages or extensions from the rest of the browser architecture.                     |
+| B1.8  | Local Network Boundary                             | Threat Boundary | Separates user's devices from the public Internet.                                                                                               |
+| B1.9  | Web Boundary                                       | Threat Boundary | Separates user agents from untrusted Web resources.                                                                                              |
+| B1.10 | Web Origin Boundary                                | Threat Boundary | Separates each Web origin from one another.                                                                                                      |
+
+#### Processes
+
+| ID | Name                                    | Type    | Description                                                                                                                                                                                                          |
+| -- | --------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| P1 | Browser / UI / Parent                   | Process | Chromium Browser process, WebKit UI process, Firefox Parent process. Coordinates privileged UI, navigation, policy, process selection, and brokering.                                                                |
+| P2 | Content / Renderer / WebContent         | Process | Chromium Renderer, WebKit WebContent, Firefox Content process family. Runs site code, DOM, script, and workers.                                                                                                      |
+| P3 | Network / Socket / Networking           | Process | Network mediation role. In Chromium this aligns with Network Service patterns; in WebKit with the Networking process; in Firefox with the Socket process and related browser-controlled networking responsibilities. |
+| P4 | GPU / compositor / media helper(s)      | Process | GPU, compositor, codec, and media helper functions where separated.                                                                                                                                                  |
+| P5 | Privileged extension / internal content | Process | Optional browser-managed privileged execution context for internal pages or extensions.                                                                                                                              |
+
+#### Data stores
+
+| ID | Name                                          | Type       | Description                                                                               |
+| -- | --------------------------------------------- | ---------- | ----------------------------------------------------------------------------------------- |
+| S1 | Profile / session / policy store              | Data Store | Preferences, profile data, history, restoration state, and browser-managed configuration. |
+| S2 | Permissions / browser metadata                | Data Store | Site settings, grants, and browser-controlled permission metadata.                        |
+| S3 | Cookies + HTTP cache                          | Data Store | Browser-managed cookie state and cached responses.                                        |
+| S4 | Web storage / IndexedDB / service-worker data | Data Store | Persistent site data, typically origin- or partition-scoped.                              |
+
+#### Flows
+
+| ID  | Name                                  | Type | Description                                                                                |
+| --- | ------------------------------------- | ---- | ------------------------------------------------------------------------------------------ |
+| F1  | User interaction                      | Flow | Input and output between the user and the privileged browser UI.                           |
+| F2  | Navigation / frame control / IPC      | Flow | Control flow between privileged browser logic and content execution.                       |
+| F3  | Subresource fetch / network mediation | Flow | Content-triggered access path to browser-controlled networking.                            |
+| F4  | HTTPS / DNS / remote data             | Flow | Exchange of requests and responses with remote origins.                                    |
+| F5  | Display / media / compositing         | Flow | Rendering and presentation path to graphics and media helpers.                             |
+| F6  | Profile/session reads and writes      | Flow | Privileged access path to profile-scoped browser state.                                    |
+| F7  | Permissions / browser policy          | Flow | Evaluation and enforcement path for browser-managed permissions and policy.                |
+| F8  | Cookie / cache mediation              | Flow | Access path to browser-managed cookie and caching state.                                   |
+| F9  | Web storage path                      | Flow | Access path to browser-managed persistent site storage.                                    |
+| F10 | Brokered OS access                    | Flow | Mediated access from browser-controlled components to operating-system or device services. |
+
+The notation follows the W3C Threat Modeling Guide: **E** for external entities, **P** for processes, **F** for flows, **S** for data stores, **C** for threat containers, and **B** for threat boundaries.
+
+### References
+
+- [Identity &amp; the Web](https://www.w3.org/reports/identity-web-impact/)
+- [Threat Modeling Guide](https://www.w3.org/TR/threat-modeling-guide/)
+- [Chromium Multi-process Architecture](https://www.chromium.org/developers/design-documents/multi-process-architecture/)
+- [Chromium Process Model and Site Isolation](https://chromium.googlesource.com/chromium/src/+/main/docs/process_model_and_site_isolation.md)
+- [Chrome “Inside look at modern web browser” — part 1](https://developer.chrome.com/blog/inside-browser-part1)
+- [Chrome “Inside look at modern web browser” — part 2](https://developer.chrome.com/blog/inside-browser-part2)
+- [Chrome “Inside look at modern web browser” — part 3](https://developer.chrome.com/blog/inside-browser-part3)
+- [Chrome “Inside look at modern web browser” — part 4](https://developer.chrome.com/blog/inside-browser-part4)
+- [Chromium: Life of a URL request](https://chromium.googlesource.com/chromium/src/+/refs/heads/main/net/docs/life-of-a-url-request.md)
+- [Chromium cookies overview](https://chromium.googlesource.com/chromium/src/+/HEAD/net/cookies/README.md)
+- [Chromium StoragePartition header](https://chromium.googlesource.com/chromium/src/+/master/content/public/browser/storage_partition.h)
+- [WebKit2 architecture overview](https://docs.webkit.org/Deep%20Dive/Architecture/WebKit2.html)
+- [WebKit Introduction](https://github.com/WebKit/WebKit/blob/main/Introduction.md)
+- [WebKit Storage documentation](https://docs.webkit.org/Deep%20Dive/Architecture/Storage.html)
+- [WebKit Site Isolation notes](https://docs.webkit.org/Deep%20Dive/SiteIsolation.html)
+- [Firefox Process Model](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html)
+- [Firefox Gecko Processes](https://firefox-source-docs.mozilla.org/ipc/processes.html)
+- [Firefox Profiles Service](https://firefox-source-docs.mozilla.org/toolkit/profile/index.html)
+- [Firefox support docs for cookies and site data](https://support.mozilla.org/en-US/kb/clear-cookies-and-site-data-firefox)
+
+## Appendix A: Browser differences and similarities
+
+The table below maps the normalized roles to the terminology used in the three browser families.
+
+| Normalized role | Chromium                                          | WebKit                                                    | Firefox                                                   |
+| :-------------- | :------------------------------------------------ | :-------------------------------------------------------- | :-------------------------------------------------------- |
+| P1 in C1.1      | Browser process                                   | UI process                                                | Parent process                                            |
+| P2 in C1.2      | Renderer process(es)                              | WebContent process(es)                                    | Content process(es)                                       |
+| P3 in C1.3      | Network Service role / per-profile NetworkContext | Networking process                                        | Socket / related browser-controlled networking roles      |
+| P4 in C1.3      | GPU process/utility process families              | platform-dependent helper separation                      | GPU / RDD / GMP / Utility                                 |
+| S1\+ S2 in C1.4 | Profile/prefs/grants                              | UI-managed settings and permission metadata               | Profile-backed configuration and permissions              |
+| S3\+ S4 in C1.5 | Cookies, cache, StoragePartition-backed site data | Networking-process-managed cache and structured site data | Profile-backed cookies, site data, and cached web content |
+
+The purpose of this mapping is to preserve the security significance of those differences while still giving specifications a shared vocabulary for the abstract model.
+
+### Chromium
+
+- The Browser process runs the UI, manages the renderer and other processes, and maintains browser-side IPC with renderers.
+- Renderer processes handle web content, and Chromium increasingly uses site-isolation and related process-model strategies to separate documents and frames.
+- Chromium’s navigation model makes explicit the hand-off among browser-side control logic, networking, renderer execution, and IPC during navigation and response handling.
+- Chromium’s network and state model includes per-profile `NetworkContext` objects and `StoragePartition`, which defines the persistent state visible to child processes.
+
+### WebKit
+
+- The UI process is the application process.
+- Web pages are loaded in WebContent processes, and multiple WebContent processes can share a browsing session in a shared Networking process.
+- The Networking process handles network access, disk caching, and structured site data APIs such as Web Storage and IndexedDB.
+- The WebContent process is tightly sandboxed and does not have direct access to the filesystem, clipboard, microphone, or camera; the UI process brokers such requests.
+- WebKit’s site-isolation work describes a move toward placing frames from each site into their own process, then repairing any resulting functionality and performance regressions.
+
+### Firefox
+
+- The Parent process handles UI, profiles, process selection, navigation, and brokering.
+- Firefox distinguishes multiple content-process variants, including shared web content, isolated web content, COOP+COEP web content, and service-worker web content.
+- The Socket process separates certain networking operations from the Parent process and is intended to absorb more TCP/UDP work over time.
+- The GPU process isolates compositing and GPU hardware interaction; the RDD process isolates media decoders in a sandboxed process; Firefox also documents GMP, VR, Utility, and related helper-process families.
+- Firefox’s persistent user state is organized around profiles, and cookies, site data, and cached web content form part of that persistent browser state.
+
+## Appendix B: How to use this DFD
+
+This abstraction is useful because it makes visible several concepts:
+
+* **Who is making the security decision**: a specification may rely on a permission check, a storage boundary, or a policy gate. They occur in components with different privileges and different assumptions. Consequently, the threat model should identify where those checks are expected to happen and whether the design depends on privileged mediation.
+* **Where the state resides**: cookies, caches, permission grants, profile-scoped settings, and site storage are not interchangeable. They are held in different browser-managed stores and are subject to different partitioning, access, and lifecycle rules. Therefore, a specification that introduces new access patterns, storage behaviors, or credential-attachment semantics should specify which class of state it expects to affect.
+* **Which boundary the design crosses**: it is always important to focus on when a boundary is crossed, e.g., when an interaction crosses two different sandboxed processes (also between different origins) or when a sandboxed process requires escalation to the privileged browser process, or when crossing to arrive at the operating-system services level.
+
+## Web Security Model
+
+### 1\. Objective and Scope
+
+* This document defines a **baseline security model for the Web Platform as a whole**, not a feature-specific review of one API, because later API reviews need a stable platform baseline against which deltas can be evaluated rather than a repeated re-definition of the platform’s core invariants. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+    
+* This model therefore treats the **Web Platform** as a layered system composed of: **standards** that define interoperable concepts and requirements, **implementations** that realize those requirements in engines and subsystems, and **browser products / user agents** that package those implementations with trusted UI, deployment choices, policy surfaces, and user-facing defaults. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* This document is not a full model of the operating system, the local device, or all native software, because the HTML standard explicitly scopes itself to the Web Platform rather than an entire operating system, while multiple security properties of the platform depend on browser mediation between web content and those lower layers. ([html.spec.whatwg.org](https://html.spec.whatwg.org/print.pdf))  
+    
+* The model covers the platform at the **network level**, **user-agent / browser level**, **web-content / execution-context level**, **ECMAScript execution level**, **WebAssembly execution and embedding level**, **storage / state / permissions / embedding / isolation level**, and **capability-bearing device and acceleration level**, including WebGPU, WebXR, and WebNN. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* In general, the baseline question is not “is this API secure in isolation?” but “what invariants already exist in the Web Platform, and does a later API preserve, weaken, or extend them?”; consequently, origin-based separation, browser mediation, transport security, and implementation hardening appear here as platform assumptions rather than API-specific add-ons. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+### 2\. Source Corpus
+
+#### 2.1 W3C
+
+* The W3C corpus is used here for **security/privacy intake**, **secure-context gating**, **permissions**, **mixed-content handling**, **trusted UI guidance**, **privacy/fingerprinting review**, and **capability-bearing API security constraints**. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+    
+* [Security & Privacy Questionnaire](https://www.w3.org/TR/security-privacy-questionnaire/) — intake model for platform-level security and privacy questions. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+    
+* [Secure Contexts](https://www.w3.org/TR/secure-contexts/) — minimum transport/authentication preconditions for exposing sensitive capabilities. ([W3C](https://www.w3.org/TR/secure-contexts/))  
+    
+* [Mixed Content](https://www.w3.org/TR/mixed-content/) — browser handling of insecure subresources and mixed downloads in otherwise secure contexts. ([W3C](https://www.w3.org/TR/mixed-content/))  
+    
+* [Permissions](https://www.w3.org/TR/permissions/) — permission states, lifetimes, and user mediation model. ([W3C](https://www.w3.org/TR/permissions/))  
+    
+* [Permissions Policy](https://www.w3.org/TR/permissions-policy/) — delegation and restriction of capability exposure, especially in embedded contexts. ([W3C](https://www.w3.org/TR/permissions-policy/))  
+    
+* [Service Workers](https://www.w3.org/TR/service-workers/) — persistent origin-scoped execution, secure-context requirement, and CSP-related constraints. ([W3C](https://www.w3.org/TR/service-workers/))  
+    
+* [Web Security Context: User Interface Guidelines](https://www.w3.org/TR/wsc-ui/) — trusted UI, signaling, and user-security-context presentation guidance. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* [Mitigating Browser Fingerprinting in Web Specifications](https://www.w3.org/TR/fingerprinting-guidance/) — fingerprinting and correlation surface review guidance. ([W3C](https://www.w3.org/TR/fingerprinting-guidance/))  
+    
+* [TAG Ethical Web Principles / Design Principles](https://www.w3.org/TR/design-principles/) — secure-context and privacy-preserving design expectations, including not exposing private browsing state. ([W3C](https://www.w3.org/TR/design-principles/))
+
+#### 2.2 WHATWG
+
+* The WHATWG corpus is used here for the **core platform object model**: origins, documents, browsing contexts, agent clusters, messaging, script loading, module loading, fetch modes, and storage keying hooks used by web content and user agents. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* [HTML Standard](https://html.spec.whatwg.org/) — documents, browsing contexts, cross-document messaging, agent clusters, script and module processing, opener relationships, and embedding concepts. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* [Fetch Standard](https://fetch.spec.whatwg.org/) — same-origin, CORS, no-cors request modes, request tainting, and network error behavior. ([fetch.spec.whatwg.org](https://fetch.spec.whatwg.org/))  
+    
+* [Storage Standard](https://storage.spec.whatwg.org/) — storage buckets and storage-key-based scoping primitives. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))
+
+#### 2.3 IETF
+
+* The IETF corpus is used here for **origin as authority scope**, **authenticated/encrypted transport**, **HSTS**, and **privacy-analysis discipline** for network-visible information. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* [RFC 6454: The Web Origin Concept](https://www.rfc-editor.org/rfc/rfc6454) — origin as the main scope of authority and privilege. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* [RFC 8446: TLS 1.3](https://www.rfc-editor.org/rfc/rfc8446) — confidentiality, integrity, and peer-authentication objectives for transport security. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc8446.html))  
+    
+* [RFC 6797: HTTP Strict Transport Security (HSTS)](https://www.rfc-editor.org/rfc/rfc6797) — browser memory of secure-only transport expectations. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6797.html))  
+    
+* [RFC 6973: Privacy Considerations for Internet Protocols](https://www.rfc-editor.org/rfc/rfc6973) — privacy-analysis lens for correlation and observability. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6973.html))
+
+#### 2.4 Ecma International
+
+* Ecma International is used here for the **execution substrate view of ECMAScript**, especially the fact that ECMAScript is a hosted language, not a self-sufficient ambient-capability system, and for execution-context / agent / realm concepts that the browser embeds into the platform security model. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* [ECMA-262 / ECMAScript Language Specification](https://tc39.es/ecma262/) — agents, execution contexts, realms, environment records, and dynamic code compilation hooks such as `eval` and `HostEnsureCanCompileStrings`. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))
+
+#### 2.5 Official WebAssembly Specifications and Documentation
+
+* Official WebAssembly sources are used here for **validation**, **execution**, **embedding**, and the critical security point that WebAssembly in the browser does not gain ambient host privilege merely by being binary code. ([webassembly.github.io](https://webassembly.github.io/spec/core/))  
+    
+* [WebAssembly Core Specification](https://webassembly.github.io/spec/core/) — validation and execution model. ([webassembly.github.io](https://webassembly.github.io/spec/core/))  
+    
+* [WebAssembly JavaScript API](https://www.w3.org/TR/wasm-js-api-2/) — browser/ECMAScript embedding rules and per-agent store model. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))
+
+#### 2.6 Official WebGPU / WGSL Sources
+
+* Official WebGPU sources are used here for the **GPU capability model**, **secure-context requirement**, **worker exposure**, **validation expectations**, and **fingerprinting / multi-process security implications**. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+    
+* [WebGPU](https://www.w3.org/TR/webgpu/) — GPU capability exposure for the Web Platform. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+    
+* Officially associated WebGPU security/privacy explainer material — browser multi-process and GPU-process security considerations. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))
+
+#### 2.7 Official WebXR Sources
+
+* Official WebXR sources are used here for the **XR capability model**, **sensor/spatial exposure risks**, **secure-context requirement**, **transient activation**, **consent**, and **permissions-policy integration**. ([immersive-web.github.io](https://immersive-web.github.io/webxr/))  
+    
+* [WebXR Device API](https://www.w3.org/TR/webxr/) — immersive and inline XR access, with explicit security, privacy, and comfort considerations. ([immersive-web.github.io](https://immersive-web.github.io/webxr/))
+
+#### 2.8 Official Web Machine Learning / WebNN Sources
+
+* Official WebNN sources are used here for the **ML capability model**, **secure-context requirement**, **cross-origin default restrictions via Permissions Policy**, **GPU integration**, and the privacy claim that on-device inference can reduce cloud disclosure while still creating local capability and fingerprinting considerations. ([W3C](https://www.w3.org/TR/webnn/))  
+    
+* [WebNN API](https://www.w3.org/TR/webnn/) — hardware-agnostic abstraction for on-device neural-network inference. ([W3C](https://www.w3.org/TR/webnn/))
+
+#### 2.9 Browser Vendor Documentation
+
+* Vendor documentation is used only where the standards do not fully specify **process architecture**, **sandboxing**, **site isolation**, **partitioning deployment**, **extension privilege design**, and **GPU/runtime hardening realities**. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* Chromium site isolation and multi-process documentation — implementation hardening against compromised renderers and cross-site data theft. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* Chromium sandbox documentation — hostile-renderer assumption and least-access process model. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+    
+* Mozilla / Firefox site-isolation documentation — process-level separation of sites as implementation security architecture. ([Mozilla Hacks – the Web developer blog](https://hacks.mozilla.org/2021/05/introducing-firefox-new-site-isolation-security-architecture/))  
+    
+* MDN, Chrome, and WebKit partitioning/storage-access documentation — browser-product behavior for anti-tracking and state partitioning. ([MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/State_Partitioning))  
+    
+* Chrome and MDN extension documentation — extension privilege and browser-behavior modification boundaries. ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview))
+
+### 3\. Method
+
+* This analysis follows a five-step method: **define the Web Platform as the object of analysis; use the W3C Security & Privacy Questionnaire as intake; identify actors, boundaries, assets, entry points, and dependencies; organize threats by target / implementation / external / dependency categories; and synthesize the resulting baseline Web Security Model for later API reuse**. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+    
+* At each step, the document distinguishes four claim types: **normative requirement** from standards text, **implementation practice** from official browser-engine documentation, **browser-product behavior** from shipped-browser documentation and user-facing controls, and **analytical inference** where the model connects those sources into a reusable baseline. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+    
+* This matters because a Web standard can define an invariant such as origin scoping without defining a renderer process model, while a browser product can deploy site isolation or storage partitioning more aggressively than the minimum interoperable platform rule. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* Consequently, this document does not treat every browser hardening measure as a universal platform guarantee, and it does not treat every API-specific permission or UI flow as part of the baseline unless the sources support that conclusion across the platform model. ([W3C](https://www.w3.org/TR/permissions/))
+
+### 4\. The Web Platform as the System Under Analysis
+
+* The **Web Platform** is the environment in which user agents fetch, parse, instantiate, execute, render, store, mediate, and communicate web content using interoperable standards such as HTML, Fetch, ECMAScript, WebAssembly, and higher-level API specifications. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* This model is not a single website, not a single browser product, and not the operating system as a whole; rather, it is the security-relevant interaction space between standards-defined web concepts, browser implementations, user-visible browser mediation, and the lower layers on which those depend. ([html.spec.whatwg.org](https://html.spec.whatwg.org/print.pdf))  
+    
+* ECMAScript fits into this model as the **hosted execution substrate** for web content, because ECMA-262 describes computations within a host environment and does not itself grant external input/output or browser privilege. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* WebAssembly fits into this model as a **binary execution substrate embedded by the browser and ECMAScript environment**, because the core and JS API specifications separate validation/execution from the embedding interface, and the browser embedding constrains WebAssembly instances to the same surrounding host-security model unless explicitly exposed imports are provided. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+    
+* WebGPU, WebXR, and WebNN fit into this model as **capability-bearing extensions of the platform**, not exceptions to it, because each is mediated through user-agent exposure rules, secure-context requirements, and additional security/privacy constraints around device access, hardware acceleration, or sensitive environmental information. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+    
+* Therefore, this baseline model exists so that later API analysis can ask a narrower question: **what changes once a specific API is introduced into an already origin-based, browser-mediated, transport-aware, implementation-hardened platform?** ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+### 5\. Layered Model: Standards, Implementations, Browsers
+
+* At this layer, the relevant distinction is between **rules**, **realizations**, and **products**, because security analysis becomes unreliable if those categories are collapsed. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* **Standards layer**:  
+    
+  * The standards layer contains normative concepts such as **origin**, **browsing context**, **document**, **message passing**, **fetch modes**, **secure contexts**, **permission states**, **ECMAScript agents/realms**, and **WebAssembly validation/embedding abstractions**. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+  * The standards layer also contains platform-facing capability rules for **WebGPU**, **WebXR**, and **WebNN**, including secure-context exposure, worker exposure, consent expectations, or permissions-policy restrictions where specified. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+  * Consequently, the standards layer defines what interoperable web content may rely on, but it does not by itself define every concrete process boundary, every anti-tracking deployment choice, or every user-interface decision of a shipped browser. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/webappapis.html))
+
+
+* **Implementation layer**:  
+    
+  * The implementation layer contains browser engines, JS engines, Wasm runtimes, networking stacks, storage systems, permission systems, process models, sandboxing, site isolation, GPU subsystems, XR integrations, and ML runtimes that realize the standards in executable form. ([chromium.org](https://www.chromium.org/developers/design-documents/multi-process-architecture/))  
+  * This layer is where memory-safety defects, parser mistakes, JIT bugs, storage-keying errors, IPC validation flaws, GPU-driver interaction bugs, and renderer-compromise assumptions become concrete security issues. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+  * Therefore, implementation hardening is part of the actual Web security posture even when it is not itself a normative platform invariant. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+
+* **Browser / user-agent product layer**:  
+    
+  * The browser-product layer contains trusted UI, permission prompts, indicators, private browsing modes, anti-tracking defaults, extension models, enterprise policy controls, update channels, and other packaging decisions that shape how users experience and trust the platform. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+  * This layer can strengthen or weaken practical security through defaults, indicators, and policy surfaces without changing the normative meaning of origin, fetch, or ECMAScript execution. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+  * By contrast, browser-product behavior is not automatically platform law; it is a deployment reality that later API reviewers must distinguish from cross-browser normative requirements. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+### 6\. Stakeholders, Actors, and Trust Boundaries
+
+* This section focuses on who the platform serves, who can act within it, and where trust must stop by default, because the Web security model is fundamentally a mediation model among mutually distrusting principals rather than a single-trust-domain architecture. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* **Stakeholders / actors**:  
+    
+  * **End users** rely on the browser to distinguish trusted UI from web-controlled UI, mediate permissions, present security state, and maintain separation between sites and origins. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+  * **Websites / origins** are principals that receive authority within their own origin scope but are isolated from other origins unless explicit interaction mechanisms exist. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+  * **Embedded third parties** operate inside frames, workers, scripts, and resource requests that may share page lifecycle while remaining separate principals for origin, storage, or permissions purposes. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/document-sequences.html))  
+  * **Browser vendors and implementers** maintain engines, sandboxes, site-isolation strategies, storage partitioning, and runtime hardening that materially affect risk under compromised-renderer assumptions. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+  * **Standards bodies** define interoperable invariants and review new features against platform-level security and privacy expectations. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+  * **Network attackers** can observe, tamper with, or attempt to downgrade communication absent authenticated and encrypted transport protections. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+  * **Malicious origins** can exploit user trust, shared embedding relationships, cross-origin messaging mistakes, storage confusion, or permission prompts to expand their effective influence. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/web-messaging.html))  
+  * **Compromised renderers** are realistic attacker footholds in browser security architecture, which is why site isolation and sandboxing are explicitly deployed as security boundaries. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+  * **Malicious or overprivileged extensions** can modify browser behavior and web content, so they sit near or across browser/content trust boundaries rather than inside ordinary web isolation assumptions. ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview))  
+  * **Local software, OS adversaries, and hardware/driver dependencies** affect the browser from below the web abstraction, which means the Web security model depends on, but does not fully control, those layers. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+  * **Enterprise / admin policy actors** can alter browser configuration, extension policy, and capability exposure at product-deployment time. ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview))
+
+
+* **Trust boundaries**:  
+    
+  * **Standards vs implementation** — the standard defines the invariant; the implementation decides how to realize and harden it. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+  * **Implementation vs browser product** — the engine enforces low-level rules; the product presents trusted UI, defaults, and policy surfaces to users. ([chromium.org](https://www.chromium.org/developers/design-documents/multi-process-architecture/))  
+  * **Browser vs operating system** — the browser mediates web content, but sandbox limitations, driver access, and kernel correctness remain external dependencies. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+  * **Browser vs web content** — browser chrome and security indicators must remain distinct from attacker-controlled content. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+  * **Origin vs origin** — origins are mutually distrustful by default. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+  * **Site vs site where relevant** — site is often used by implementations for process isolation and partitioning, but it does not replace origin as the base web authority unit. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+  * **Renderer/process boundaries where supported** — implementation hardening frequently treats renderers as hostile and isolates sites across processes. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+  * **Storage boundaries** — state is scoped by origin/storage keys and increasingly partitioned by site and top-level context in product behavior. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))  
+  * **Permission boundaries** — capabilities with security or privacy impact are not ambient and require browser-mediated state and UI. ([W3C](https://www.w3.org/TR/permissions/))  
+  * **JavaScript vs privileged host capabilities** — ECMAScript is hosted code, and host access is mediated by the browser rather than created by the language itself. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+  * **WebAssembly vs host/browser capabilities** — Wasm execution is constrained by validation and embedding, and imported capabilities define what it can reach. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+  * **JavaScript ↔ WebAssembly interaction boundary** — Wasm is embedded into the ECMAScript/browser environment rather than outside it, so confinement depends on both validation and host-mediated imports. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+  * **GPU APIs vs GPU/driver/OS capabilities** — the browser mediates API-level access, but GPU drivers and processes remain implementation dependencies and attack surfaces. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))  
+  * **XR APIs vs device/sensor/spatial/environment capabilities** — XR access changes what environmental information can be exposed and therefore introduces explicit consent and session constraints. ([immersive-web.github.io](https://immersive-web.github.io/webxr/))  
+  * **ML APIs vs underlying OS/hardware ML capabilities** — WebNN abstracts hardware acceleration but does not eliminate sensitivity around local capability exposure or GPU-backed execution paths. ([W3C](https://www.w3.org/TR/webnn/))  
+  * **Secure vs insecure transport** — transport security creates a boundary against passive and active network attack, but only when the browser can authenticate and encrypt the channel. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+  * **Trusted UI vs web-controlled UI** — phishing resistance depends on keeping security chrome visible and not confusing user trust decisions with page-controlled presentation. ([W3C](https://www.w3.org/TR/wsc-ui/))
+
+### 7\. Security & Privacy Questionnaire Extraction
+
+* This section applies the W3C Security & Privacy Questionnaire to the **Web Platform as a platform**, not to one candidate API, because the questionnaire’s prompts map cleanly onto baseline concerns about state, cross-origin communication, device access, user mediation, and fingerprinting. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))
+
+| Topic | Why it matters | Security consequence | Privacy consequence | Primary layer(s) | Refs |
+| :---- | :---- | :---- | :---- | :---- | :---- |
+| Information exposure to first parties | The platform intentionally lets the active origin read and send data within its granted scope. | The main risk is overbroad origin authority after compromise, especially through script injection or persistent execution. | First-party collection can still be excessive even when cross-origin isolation holds. | Standards \+ browsers | ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html)) |
+| Information exposure to third parties | Embedded resources, frames, and messaging create structured paths for third-party participation. | Mis-scoped fetch, messaging, or embedding can leak data across principal boundaries. | Third-party embedding increases correlation and tracking surface. | All three | ([fetch.spec.whatwg.org](https://fetch.spec.whatwg.org/)) |
+| Persistent state, local storage, and state reuse | State survives beyond one document load through storage, cookies, service workers, and related mechanisms. | Persistent state enlarges compromise duration and replay surface. | Persistent identifiers enable long-term correlation unless partitioned or constrained. | All three | ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/)) |
+| Platform and device information exposure | Browser, hardware, and runtime capability signals can identify or segment users and devices. | Excess capability disclosure can aid exploit targeting. | Capability and limit disclosure increases fingerprinting surface. | Standards \+ implementations \+ browsers | ([W3C](https://www.w3.org/TR/fingerprinting-guidance/)) |
+| Sensor and hardware access | Powerful features can expose device, environment, or user-behavior information. | Security depends on user-agent mediation and policy gating rather than ambient access. | Sensor and spatial data can reveal sensitive personal and environmental information. | All three | ([W3C](https://www.w3.org/TR/permissions/)) |
+| Script execution and code loading | Arbitrary web-delivered code is a baseline fact of the platform. | Compromised origin content can execute with that origin’s authority. | Script loading also enlarges observation and data-export paths. | Standards \+ implementations | ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/scripting.html)) |
+| ECMAScript execution and dynamic code behavior | ECMAScript is the main hosted code substrate, including dynamic compilation hooks. | Dynamic string compilation and hostile script injection magnify compromise impact within the origin. | Dynamic execution can bypass developer assumptions about code provenance. | Standards \+ implementations | ([tc39.es](https://tc39.es/ecma262/multipage/overview.html)) |
+| WebAssembly loading / validation / instantiation / execution | Wasm adds a second execution substrate with explicit validation and embedding rules. | Validation reduces malformed-binary attack surface, but imported capabilities and engine bugs remain critical. | Wasm itself is not a privacy control; it can process any data the origin can already reach. | Standards \+ implementations | ([webassembly.github.io](https://webassembly.github.io/spec/js-api/)) |
+| GPU, XR, and ML capability exposure | These APIs reach hardware acceleration, device sensors, or environmental/spatial information. | They create high-value attack surfaces at API, IPC, driver, and consent boundaries. | They expose fingerprinting, spatial, or model/capability signals that can correlate users or devices. | All three | ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/)) |
+| Communication across origins and cross-context messaging | The platform allows limited, structured cross-principal communication. | Wrong origin checks or overbroad channels can bypass intended separation. | Cross-context messaging can become a covert correlation path. | Standards \+ implementations | ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/web-messaging.html)) |
+| Browser UI mediation and user visibility | Users rely on the browser, not the page, for trusted signals about security state and permission decisions. | UI confusion enables phishing and unsafe consent. | Poor visibility undermines meaningful privacy choice. | Browsers | ([W3C](https://www.w3.org/TR/wsc-ui/)) |
+| Permissions and powerful features | Capabilities with higher security/privacy impact are expected to be mediated. | The main invariant is non-ambient access plus revocable or bounded state. | Permission prompts and grants become new identifiers and expectation surfaces. | Standards \+ browsers | ([W3C](https://www.w3.org/TR/permissions/)) |
+| Secure contexts and downgrade resistance | Sensitive capabilities are often restricted to authenticated and confidential transport contexts. | This reduces exposure to active and passive network attackers. | It does not by itself eliminate higher-layer tracking or endpoint disclosure. | Standards \+ browsers | ([W3C](https://www.w3.org/TR/secure-contexts/)) |
+| Private browsing, anti-tracking, and partitioning | Browser products increasingly scope or partition state beyond the minimum origin model. | Partitioning reduces cross-site data joins and some confused-deputy patterns. | Partitioning and private modes aim to reduce cross-site correlation, though behavior is product-specific. | Implementations \+ browsers | ([W3C](https://www.w3.org/TR/design-principles/)) |
+| Sending data to the underlying platform / local resources | Some features can reach device subsystems, local files, hardware, or nearby/private resources. | Each such path is a new trust boundary beyond ordinary origin-separated content. | Local and nearby resources can reveal home, enterprise, or device context. | Standards \+ browsers | ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/)) |
+| Local or private network resources | The concern is security-relevant because web content can become a bridge toward non-public infrastructure. | A single mature, cross-browser baseline rule for all such access is **Unsupported by allowed sources**. | The privacy consequence is contextual network discovery and correlation. | Browsers / evolving standards space | Unsupported by allowed sources |
+| Embedding and framed documents | Embedded contexts combine cooperation and distrust inside one visible page. | Frame relationships can create data leaks, UI confusion, or capability delegation mistakes. | Third-party frames expand cross-site observation and state-sharing pressure. | All three | ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/document-sequences.html)) |
+| Downgrade of default protections | Mixed content, unsafe embedding, or lax policy headers can re-open lower-security channels. | The platform tries to block or limit such downgrades, but server-side choices remain relevant. | Downgrades can expose browsing behavior and identifiers to additional observers. | Standards \+ browsers | ([W3C](https://www.w3.org/TR/mixed-content/)) |
+| Fingerprinting and correlation surface | The platform exposes many small capability and behavior differences that can be combined. | Fingerprinting can support exploit targeting and policy bypass. | Correlation across sites or contexts is a direct privacy harm. | All three | ([W3C](https://www.w3.org/TR/fingerprinting-guidance/)) |
+
+### 8\. Platform Assets, Entry Points, and Dependencies
+
+* This section focuses on what the platform must protect, where attacker-controlled input enters, and which lower-layer dependencies can defeat otherwise-correct web isolation. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+#### Assets
+
+| Asset | Why it is security-relevant | Typical exposure path | Refs |
+| :---- | :---- | :---- | :---- |
+| User data and origin-scoped application data | It is the direct confidentiality target of most web compromise. | Same-origin script execution, storage, network submission, embedding mistakes. | ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html)) |
+| Credentials and cryptographic material | It enables impersonation and account takeover. | Form submission, stored tokens, transport interception if protections fail, browser mediation features. | ([RFC Editor](https://www.rfc-editor.org/info/rfc8446)) |
+| Session state and persistent registrations | It prolongs authority beyond one page lifetime. | Cookies/storage/service workers/partitioning exceptions. | ([W3C](https://www.w3.org/TR/service-workers/)) |
+| Browsing activity, history, and correlation signals | It reveals user behavior across origins and sites. | Third-party embedding, fingerprinting, shared state, network visibility. | ([W3C](https://www.w3.org/TR/fingerprinting-guidance/)) |
+| Device and platform information | It supports fingerprinting and exploit targeting. | Capability queries, adapter/features/limits, runtime differences. | ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/)) |
+| Permission grants and trust decisions | They mediate access to non-ambient features. | Browser permission store, prompts, policies, embedding delegation. | ([W3C](https://www.w3.org/TR/permissions/)) |
+| Integrity of browser UI and security indicators | Users rely on this boundary to distinguish browser trust from page control. | UI spoofing, phishing, hidden security chrome, extension interference. | ([W3C](https://www.w3.org/TR/wsc-ui/)) |
+| Integrity of cross-origin separation | It is the central platform invariant. | SOP/CORS bugs, messaging mistakes, compromised renderers, isolation failures. | ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html)) |
+| Integrity of ECMAScript and Wasm confinement | It preserves the hosted-code model. | Engine bugs, JIT/runtime defects, unsafe imports, dynamic code paths. | ([tc39.es](https://tc39.es/ecma262/multipage/overview.html)) |
+| GPU/XR/ML-derived outputs and environment signals | They can reveal hardware, spatial, or model-sensitive state. | Capability queries, shader timing, XR sessions, on-device inference. | ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/)) |
+
+#### Entry points
+
+| Entry point | Why it matters | Refs |
+| :---- | :---- | :---- |
+| Network-delivered documents and resources | It is the main attacker-controlled input channel for the platform. | ([fetch.spec.whatwg.org](https://fetch.spec.whatwg.org/)) |
+| Scripts, modules, and dynamic code pathways | They determine what active code executes within an origin. | ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/scripting.html)) |
+| WebAssembly binaries and instantiation APIs | They introduce binary code subject to validation and embedding rules. | ([webassembly.github.io](https://webassembly.github.io/spec/js-api/)) |
+| GPU API calls and shader/program submission | They cross from web content into GPU validation and driver-facing paths. | ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/)) |
+| XR session creation and sensor pathways | They cross into sensitive environment and device data. | ([immersive-web.github.io](https://immersive-web.github.io/webxr/)) |
+| WebNN context / graph / inference pathways | They cross into local ML runtimes and possibly GPU-backed acceleration. | ([W3C](https://www.w3.org/TR/webnn/)) |
+| Browser UI, prompts, and indicators | They are entry points for user trust decisions and therefore phishing targets. | ([W3C](https://www.w3.org/TR/wsc-ui/)) |
+| Embedding, navigation, opener, and messaging relationships | They connect otherwise separate contexts. | ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/web-messaging.html)) |
+| Storage APIs and storage-access exceptions | They connect execution to persistent or less-partitioned state. | ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/)) |
+| Extensions, enterprise policy, and update channels | They can change browser behavior beyond ordinary web-origin limits. | ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview)) |
+
+#### Dependencies
+
+* The platform depends on **DNS, PKI, TLS, and server correctness** for authenticated transport and correct origin-to-endpoint binding. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* The platform depends on **OS, kernel, and driver correctness** because sandboxing reduces but does not eliminate the impact of lower-layer compromise, and GPU integrations explicitly rely on driver-facing processes. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+    
+* The platform depends on **implementation memory safety and IPC validation** because compromised renderers and shared GPU-process boundaries are explicit threat assumptions in browser architecture. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* The platform depends on **user-facing product choices** such as indicators, defaults, extension policy, and partitioning deployment for practical resistance to phishing, tracking, and confused delegation. ([W3C](https://www.w3.org/TR/wsc-ui/))
+
+## 9\. Threat Model
+
+* This threat model is organized as **target threats**, **implementation threats**, **external threats**, and **dependency threats**, because the platform is attacked both through web-content semantics and through the browser stack that realizes them. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+#### 9.1 Target Threats
+
+| ID | Title | Category | Affected layer(s) | Affected assets / actors | Preconditions and attack description | Impact / violated invariant | Addressed where | Refs |
+| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
+| T-01 | Cross-origin separation failure | Target | Standards, implementations, browsers | Origin-scoped data; users; honest origins | An attacker origin exploits incorrect SOP/CORS/messaging checks or embedding mistakes to read or influence another origin. | Confidentiality/integrity loss; violates origin-based isolation and constrained cross-origin interaction. | Normatively addressed by origin/fetch/messaging rules; heavily reinforced in implementations. | ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html)) |
+| T-02 | Origin-compromising active content and persistence abuse | Target | Standards, implementations | Session state, user data, persistent authority; users; compromised origins | Malicious or injected script executes within an origin, optionally persisting via service workers or dynamic code loading. | Same-origin authority abuse; violates assumption that active content remains application-controlled. | Partially normative through script/service-worker/CSP-related constraints; mainly mitigated by application discipline and implementation hardening. | ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/scripting.html)) |
+| T-03 | Capability escalation through permissioned surfaces | Target | Standards, browsers, implementations | Permission grants, device data, GPU/XR/ML outputs; users | A malicious origin acquires or abuses permissioned capability surfaces, including embedded delegation or misleading prompts. | Exposure of sensitive device/spatial/local capability data; violates non-ambient access and meaningful browser mediation. | Normatively addressed by permissions, secure contexts, policy gating, and API-specific constraints; product UX remains critical. | ([W3C](https://www.w3.org/TR/permissions/)) |
+
+#### 9.2 Implementation Threats
+
+| ID | Title | Category | Affected layer(s) | Affected assets / actors | Preconditions and attack description | Impact / violated invariant | Addressed where | Refs |
+| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
+| I-01 | Renderer / engine compromise | Implementation | Implementations, browsers | Cross-origin separation, browser integrity, user data; browser vendors; users | Malicious content exploits parser, JS engine, or renderer bugs to gain control of a renderer and pivot toward cross-site or browser compromise. | Cross-site theft or browser escape; violates hosted-code confinement and defense in depth. | Mainly addressed in implementations through sandboxing and site isolation. | ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/)) |
+| I-02 | GPU / XR / ML integration validation flaws | Implementation | Implementations | GPU/XR/ML data, process integrity, driver-facing trust; users | Malformed or adversarial API usage reaches under-validated IPC, GPU process, driver, or sensor/session code paths. | Memory corruption, cross-origin leakage, or device-level instability; violates mediated capability-surface assumptions. | Mainly addressed in implementations; some API-specific normative constraints exist. | ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/)) |
+| I-03 | Storage keying / partitioning defects | Implementation | Implementations, browsers | Persistent state, tracking boundaries, origin/site isolation | Incorrect storage scoping, partitioning, or exception handling leaks state across intended boundaries. | Cross-site correlation or unauthorized state reuse; violates storage scoping and partitioning expectations. | Partially normative at storage-key level; strongly dependent on browser implementation and product behavior. | ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/)) |
+
+#### 9.3 External Threats
+
+| ID | Title | Category | Affected layer(s) | Affected assets / actors | Preconditions and attack description | Impact / violated invariant | Addressed where | Refs |
+| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
+| E-01 | Passive or active network attack | External | Network, standards, browsers | Confidentiality/integrity of transport; users; origins | The attacker observes or modifies traffic, or forces insecure subresource loading/downgrades. | Eavesdropping, tampering, misbinding, mixed-content compromise; violates authenticated/encrypted transport assumptions. | Normatively addressed by TLS, secure contexts, HSTS, and mixed-content handling. | ([RFC Editor](https://www.rfc-editor.org/info/rfc8446)) |
+| E-02 | Trusted-UI spoofing and consent deception | External | Browsers, product layer | User trust decisions, permission grants, credential entry | A malicious site imitates browser UI, hides security chrome, or exploits confusing prompt timing and opener/navigation relationships. | Phishing and unsafe consent; violates browser/UI distinction and informed mediation. | Mainly addressed in browser product behavior and UI guidance. | ([W3C](https://www.w3.org/TR/wsc-ui/)) |
+| E-03 | Malicious or overprivileged extension interference | External | Browser product, implementations | Browser integrity, content integrity, user data | An extension with broad privileges modifies page behavior, intercepts data, or changes browser mediation paths. | Cross-boundary privilege abuse; violates ordinary web-origin assumptions. | Mainly addressed in browser product policy, extension architecture, and CSP-like restrictions. | ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview)) |
+
+#### 9.4 Dependency Threats
+
+| ID | Title | Category | Affected layer(s) | Affected assets / actors | Preconditions and attack description | Impact / violated invariant | Addressed where | Refs |
+| :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- | :---- |
+| D-01 | OS / kernel / driver compromise | Dependency | Below browser; implementations | Browser sandbox assumptions, device confidentiality, process integrity | Local privileged malware or faulty kernel/driver behavior defeats browser confinement or leaks data via lower layers. | Collapse of browser-enforced boundaries; violates assumption that lower layers honor sandbox boundaries. | Not clearly addressed by Web standards; only reduced by implementation hardening. | ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md)) |
+| D-02 | PKI / server misconfiguration / first-visit weakness | Dependency | Network, browsers | Transport authenticity, origin trust | Mis-issued trust, server mistakes, or absence of previously learned HSTS weakens the browser’s transport assumptions. | Wrong-endpoint trust or downgrade exposure; violates authenticated transport assumptions. | Partially addressed by TLS/HSTS; still dependent on external trust ecosystem and server behavior. | ([RFC Editor](https://www.rfc-editor.org/info/rfc8446)) |
+| D-03 | Local/private-network reachability misuse | Dependency | Browsers, local environment | Internal network resources, local device context | Web content reaches beyond public web assumptions toward local or private resources. | Bridges web content into non-public environments; violates simple public-web trust assumptions. | A universal mature baseline is **Unsupported by allowed sources**. | Unsupported by allowed sources |
+
+### 10\. Web Security Model
+
+* This section synthesizes the platform model itself. In general, the security consequence is not only that the browser blocks some attacks, but that the platform is structured around a small number of stable units, assumptions, and invariants from which later reviews should begin. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+#### 10.1 Core Security Units
+
+* **Origin** is the core authority and isolation unit of the Web Platform, because RFC 6454 defines it as the scope of privilege and user agents isolate different origins to prevent interference. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* **Site**, where relevant, is an implementation- and product-significant grouping used for process isolation and partitioning, but it is not the normative replacement for origin as the base web principal. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* **Browsing context** is the container in which documents are presented and related through top-level and embedded context structure. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/document-sequences.html))  
+    
+* **Document** is the active web content unit that participates in browsing-context, origin, and embedding relationships. ([html.spec.whatwg.org](https://html.spec.whatwg.org/dev/infrastructure.html))  
+    
+* **Execution context** is the ECMAScript-level unit through which code runs inside an agent and realm structure. ([tc39.es](https://tc39.es/ecma262/2025/))  
+    
+* **Agent / agent cluster**, where relevant, captures groups of ECMAScript execution and idealized process-like isolation boundaries, although HTML notes that agent clusters are architecture-independent and can be more restrictive than actual user-agent process boundaries. ([tc39.es](https://tc39.es/ecma262/2025/))  
+    
+* **ECMAScript execution environment** is a hosted environment inside the browser, not an ambient-privilege container. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* **WebAssembly module / instance / embedding boundary** is a security unit because validation, instantiation, store association, and imported capabilities determine what Wasm code can actually reach. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+    
+* **Capability-bearing surfaces** such as **GPU**, **XR sessions**, and **ML contexts** are security units because they mediate access to hardware acceleration, sensors, spatial/environmental information, or local inference capabilities. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))  
+    
+* **Process / renderer isolation where supported** is a defense-in-depth unit in implementations, especially under compromised-renderer assumptions. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+#### 10.2 Core Assumptions
+
+* The network is **untrusted by default** unless the browser can authenticate and encrypt the channel. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* Web content is **untrusted by default**, even though it is expected to execute, because arbitrary documents, scripts, modules, and Wasm binaries are normal platform inputs. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* Origins are **mutually distrustful by default** unless explicit cross-origin interaction mechanisms are used. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* The **user agent** is the main policy-enforcement point between web content and lower layers. ([W3C](https://www.w3.org/TR/permissions/))  
+    
+* Browser UI is **distinct from web content UI**, and user trust depends on that distinction remaining visible. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* ECMAScript is **constrained by host policy**, because the language is defined for hosted computation rather than standalone browser/OS privilege. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* WebAssembly is **constrained by validation, embedding, and browser/host policy**, not by ambient binary privilege. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+    
+* WebGPU, WebXR, and WebNN are **mediated capability surfaces**, not ambient privilege grants. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+    
+* Implementation bugs, compromised renderers, and shared-subsystem failures are **realistic threats**, which is why modern browsers deploy sandboxing and site isolation. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+#### 10.3 Core Invariants
+
+* **Origin-based isolation** is the foundational invariant of the platform. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* **Cross-origin interaction is constrained**, not absent, through structured mechanisms such as CORS and message passing. ([fetch.spec.whatwg.org](https://fetch.spec.whatwg.org/))  
+    
+* **Powerful features are mediated**, because browser permissions, secure contexts, and policy controls exist precisely to prevent ambient access. ([W3C](https://www.w3.org/TR/permissions/))  
+    
+* **Secure-context gating applies where capability or sensitivity justifies it**, including service workers, WebGPU, WebXR, and WebNN. ([W3C](https://www.w3.org/TR/service-workers/))  
+    
+* **Transport authentication and confidentiality matter to platform safety**, because otherwise lower-layer attackers can undermine higher-layer origin and permission assumptions. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* **Web content is separated from browser and OS privilege**, even though it can request controlled access to selected capabilities. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* **User consent is browser-mediated**, not self-attested by web content. ([W3C](https://www.w3.org/TR/permissions/))  
+    
+* **Storage and state are scoped, and increasingly partitioned where supported**, to prevent unintended sharing and tracking across contexts. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))  
+    
+* **Implementation confinement mechanisms** such as sandboxing and site isolation are part of the effective Web security model even though they are not the whole model. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* **ECMAScript remains hosted code within the web security model**, not outside it. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* **WebAssembly remains sandboxed code within the web security model**, not outside it. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+    
+* **WebGPU, WebXR, and WebNN are controlled extensions of the model**, not exceptions that remove browser mediation. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+    
+* **Defense in depth across layers** is required because standards invariants, implementation hardening, and product mediation each cover different failure modes. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+#### 10.4 Network-Level Security Model
+
+* This section focuses on what the browser can and cannot guarantee once content leaves the local rendering boundary and depends on remote transport. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* Authenticated and encrypted transport is a baseline requirement for many sensitive platform capabilities, because TLS provides confidentiality, integrity, and authentication goals, and secure contexts use those conditions as a gating signal. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* Passive network attackers matter because they can observe data and metadata when transport protections are absent or weakened. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* Active network attackers matter because they can tamper with content, downgrade flows, or inject insecure subresources when the browser cannot maintain secure transport and mixed-content protections. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* Mixed content and insecure embedding are important because they can re-introduce less-trusted transport into an otherwise secure page, and the Mixed Content specification therefore defines blocking and restriction behavior for such cases. ([W3C](https://www.w3.org/TR/mixed-content/))  
+    
+* What the browser can guarantee at this layer is limited: it can enforce secure-context checks, apply HSTS state, validate certificates through its trust model, and block or restrict mixed content according to standards and product policy. ([W3C](https://www.w3.org/TR/secure-contexts/))  
+    
+* What the browser cannot guarantee is equally important: it cannot make an untrustworthy remote service honest, it cannot prevent disclosure by the endpoint itself, and it cannot fully eliminate all network-observable correlation or metadata risks merely through transport security. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6973.html))
+
+#### 10.5 User-Agent / Browser-Level Security Model
+
+* This section focuses on the browser as the **policy-enforcement and trust-presentation point** of the platform. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* The browser is the enforcement point for origin, fetch, permission, storage, and capability exposure rules, even when the detailed enforcement logic is distributed across multiple subsystems. ([fetch.spec.whatwg.org](https://fetch.spec.whatwg.org/))  
+    
+* Trusted browser UI must remain distinguishable from web-controlled UI because users rely on security chrome and browser signals when making trust decisions. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* Sandboxing matters because browser security architecture explicitly assumes hostile renderer compromise and seeks to minimize what a compromised process can access. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+    
+* Process separation and site isolation matter because they turn compromised-renderer assumptions into more contained failures rather than full cross-site compromise. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* Extension privilege separation matters because extensions can modify web content and browser behavior in ways ordinary web origins cannot. ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview))  
+    
+* OS and platform dependency boundaries matter because browser confinement depends on lower-layer correctness, and some subsystems such as GPU handling require broader system interaction than ordinary renderers. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+    
+* JS engines and Wasm runtimes fit into browser enforcement as hosted execution subsystems whose code remains subject to browser-mediated capability access and same-origin/storage rules. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* GPU, XR, and ML integrations fit into browser enforcement as brokered or mediated paths toward hardware acceleration, sensors, and device-specific runtimes, which is why secure contexts, consent, permissions policy, or GPU-process validation appear in their security model. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))
+
+#### 10.6 Web-Content / Execution-Level Security Model
+
+* This section focuses on how arbitrary content is loaded, embedded, executed, and constrained once the browser admits it into the platform. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* Arbitrary web content is fetched and executed as documents, scripts, modules, workers, and optionally WebAssembly binaries, which means untrusted active content is a baseline platform condition rather than an exceptional case. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* The same-origin model and related fetch logic remain central because they define which content can directly read which data, and under what request modes or explicit cross-origin permissions. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* Cross-origin communication is controlled rather than forbidden, using structured channels such as `postMessage`, `MessageChannel`, and `BroadcastChannel`, which means correct origin validation remains a baseline developer and platform concern. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/web-messaging.html))  
+    
+* Embedding is constrained through origin relationships, browser policies, and response/policy controls, including policy mechanisms that affect framed capabilities and document relationships. ([W3C](https://www.w3.org/TR/permissions-policy/))  
+    
+* Navigation and opener relationships matter because new windows, auxiliary browsing contexts, and opener references can propagate trust or confusion across visible browsing state. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/links.html))  
+    
+* Storage access boundaries matter because execution is not only about immediate code authority but also about what persistent state the code can reuse, whether that state is partitioned, and whether less-partitioned access is specially requested. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))  
+    
+* Permissions and feature gating matter because powerful features are exposed through browser-mediated state and may be disabled, delegated, or denied in embedded contexts via Permissions Policy. ([W3C](https://www.w3.org/TR/permissions/))  
+    
+* ECMAScript’s role is to provide the main hosted execution model, including realms, agents, execution contexts, and optional dynamic-code hooks controlled by the host environment. ([tc39.es](https://tc39.es/ecma262/2025/))  
+    
+* WebAssembly’s role is to provide a validated binary execution model embedded into the same browser/host security context, with capabilities determined by imports and embedding. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))  
+    
+* WebGPU’s role is to expose GPU hardware capabilities through secure-context, window/worker-visible interfaces, while relying on browser-side validation and GPU-process isolation assumptions. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/))  
+    
+* WebXR’s role is to expose immersive and spatial computing capability through secure contexts, user intent, transient activation, consent, and permissions-policy-aware session handling. ([immersive-web.github.io](https://immersive-web.github.io/webxr/))  
+    
+* WebNN’s role is to expose on-device ML inference through secure-context, permissions-policy-restricted APIs that can integrate with WebGPU-backed contexts while keeping data local to the browser when feasible. ([W3C](https://www.w3.org/TR/webnn/))
+
+#### 10.7 Using this Web Security Model as a Baseline for Other Web APIs
+
+* Later API analysis should first ask whether the API **weakens a baseline invariant**, such as origin separation, browser mediation, secure-context expectations, or trusted-UI distinctions. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* Later API analysis should ask whether the API **creates new assets**, such as device identifiers, environmental data, privileged outputs, or persistent state. ([W3C](https://www.w3.org/TR/fingerprinting-guidance/))  
+    
+* Later API analysis should ask whether the API **creates a new trust boundary**, for example between web content and hardware, local software, GPU drivers, XR devices, or ML runtimes. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))  
+    
+* Later API analysis should ask whether the API **exposes new identifiers or state**, or reduces existing partitioning/scoping assumptions. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))  
+    
+* Later API analysis should ask whether the API **increases fingerprinting surface**, even when no direct permission prompt is involved. ([W3C](https://www.w3.org/TR/fingerprinting-guidance/))  
+    
+* Later API analysis should ask whether the API **grants or mediates powerful access**, and if so whether secure contexts, permissions, and permissions policy are sufficient. ([W3C](https://www.w3.org/TR/secure-contexts/))  
+    
+* Later API analysis should ask whether the API **changes browser UI or user expectations**, because the platform relies on trusted browser mediation rather than page self-assertion. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* Later API analysis should ask whether the API **shifts risk from standards to implementations or browser products**, for example by depending heavily on GPU-process validation or product-specific anti-tracking behavior. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))  
+    
+* Later API analysis should ask whether the API **changes JS/Wasm execution assumptions**, for example by widening dynamic compilation, cross-agent sharing, or imported-capability surfaces. ([tc39.es](https://tc39.es/ecma262/multipage/global-object.html))  
+    
+* Later API analysis should ask whether the API **introduces GPU/XR/ML-like capability assumptions**, meaning browser-mediated access to hardware, environmental, or inference-relevant subsystems. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))
+
+### 11\. Diagrams
+
+#### 11.1 Network-Level Security Model Diagram
+
+```
+flowchart LR
+    U[User]
+    B[Browser]
+    UI[Trusted Browser UI]
+    WC[Web Content]
+    NET[DNS / Network / Transport Path]
+    O1[First-Party Origin]
+    O2[Third-Party Origin]
+    P[Passive Network Attacker]
+    A[Active Network Attacker]
+
+    U --> UI
+    UI --> B
+    B --> WC
+    WC -->|Requests| NET
+    NET --> O1
+    NET --> O2
+
+    P -.observes .-> NET
+    A -.tamper / downgrade .-> NET
+
+    SC{{Secure Transport Boundary}}
+    IC{{Insecure / Mixed Boundary}}
+    B --- SC
+    NET --- SC
+    WC --- IC
+
+    TB1[[Trust Boundary: Browser UI vs Web Content]]
+    TB2[[Trust Boundary: Browser vs Network]]
+    TB3[[Trust Boundary: Origin vs Origin]]
+
+    UI --- TB1
+    B --- TB2
+    O1 --- TB3
+    O2 --- TB3
+```
+
+* The diagram shows that the browser sits between the user and remote origins, while trusted UI remains a separate trust surface from page-controlled content. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* The key trust boundaries are **browser UI vs web content**, **browser vs network**, and **origin vs origin**; consequently, transport security and origin scoping protect different parts of the model. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* The main invariants are authenticated/encrypted transport where required, browser-controlled signaling, and origin separation beyond the transport layer. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+    
+* The main attacker opportunities are passive observation, active tampering/downgrade, mixed-content re-entry, and user deception if browser trust signals are confused with web content. ([W3C](https://www.w3.org/TR/mixed-content/))
+
+#### 11.2 User-Agent / Browser-Level Security Model Diagram
+
+```
+flowchart TB
+    UI[Browser Chrome / Trusted UI]
+    EXT[Extensions]
+    R[Renderer / Content Process]
+    JS[JS Engine]
+    WASM[Wasm Runtime]
+    NET[Networking Subsystem]
+    ST[Storage Subsystem]
+    PERM[Permissions Subsystem]
+    GPU[GPU Process / Integration]
+    XR[XR Integration]
+    ML[ML Runtime / Integration]
+    OS[OS / Device / Drivers]
+
+    UI --> R
+    R --> JS
+    R --> WASM
+    R --> NET
+    R --> ST
+    R --> PERM
+    R --> GPU
+    R --> XR
+    R --> ML
+    EXT --> UI
+    EXT --> R
+
+    GPU --> OS
+    XR --> OS
+    ML --> OS
+    NET --> OS
+    ST --> OS
+
+    SB1[[Sandbox Boundary]]
+    SB2[[Process / Site Isolation Boundary]]
+    SB3[[Browser vs OS Boundary]]
+    SB4[[Extension Privilege Boundary]]
+
+    R --- SB1
+    R --- SB2
+    OS --- SB3
+    EXT --- SB4
+```
+
+* The diagram shows the browser as a collection of cooperating subsystems rather than a single monolithic enforcement point, which matters because different attack surfaces exist at renderer, IPC, storage, permission, GPU, and extension boundaries. ([chromium.org](https://www.chromium.org/developers/design-documents/multi-process-architecture/))  
+    
+* The key trust boundaries are **sandbox/process isolation**, **browser vs OS/device**, and **extension privilege boundaries**. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+    
+* The main invariants are that web content remains hosted and mediated, that compromised renderers are contained where possible, and that powerful capability paths are brokered through dedicated subsystems rather than ambient privilege. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* The main attacker opportunities are engine bugs, renderer compromise, extension interference, and driver-facing or device-facing integration flaws. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+#### 11.3 Web-Content / Execution-Level Security Model Diagram
+
+```
+flowchart LR
+    TLD[Top-Level Document<br/>Origin A]
+    IFD[Embedded Third-Party Frame<br/>Origin B]
+    JSA[ECMAScript Execution Context]
+    WASM[WebAssembly Module / Instance]
+    GPU[WebGPU Context]
+    XR[WebXR Session]
+    ML[WebNN Context]
+    STOR[Origin / Partitioned Storage]
+    PM[Cross-Origin Messaging]
+    BR[Browser Mediation]
+    PERM[Permissions / Policy Gates]
+
+    TLD --> JSA
+    JSA --> WASM
+    JSA --> GPU
+    JSA --> XR
+    JSA --> ML
+    TLD --> STOR
+    IFD --> STOR
+    TLD <--> PM
+    IFD <--> PM
+    GPU --> BR
+    XR --> BR
+    ML --> BR
+    BR --> PERM
+```
+
+* The diagram shows that active content executes inside documents and contexts, but capability-bearing APIs remain brokered through browser mediation rather than being direct ambient privilege. ([tc39.es](https://tc39.es/ecma262/multipage/overview.html))  
+    
+* The key trust boundaries are **Origin A vs Origin B**, **execution context vs browser-mediated capability surfaces**, and **ordinary storage scope vs partitioned or specially granted state access**. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* The main invariants are origin-based execution authority, structured cross-origin communication, validated Wasm embedding, and permission/policy gating for powerful features. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/web-messaging.html))  
+    
+* The main attacker opportunities are cross-origin messaging mistakes, origin compromise via script execution, overbroad capability access, and state/correlation leakage through storage or hardware capability exposure. ([tc39.es](https://tc39.es/ecma262/multipage/global-object.html))
+
+### 12\. Mitigations and Responses
+
+* **Transport mitigations**:  
+    
+  * Use authenticated and encrypted transport, remember secure-only policy where possible, and block or restrict mixed content, because network attackers otherwise undermine higher-layer origin and permission assumptions. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))
+
+
+* **Origin and cross-origin mitigations**:  
+    
+  * Preserve strict origin scoping, rely on explicit cross-origin mechanisms rather than ambient sharing, and validate message origins in cross-context communication. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+
+* **Execution mitigations**:  
+    
+  * Limit active-content injection opportunities, control dynamic code compilation paths where possible, and treat service-worker persistence as a high-value authority-expansion surface. ([tc39.es](https://tc39.es/ecma262/multipage/global-object.html))
+
+
+* **WebAssembly mitigations**:  
+    
+  * Preserve Wasm validation, enforce embedding constraints, and avoid exposing unnecessary imported capabilities, because Wasm confinement depends on both binary validity and host mediation. ([webassembly.github.io](https://webassembly.github.io/spec/js-api/))
+
+
+* **Capability-surface mitigations**:  
+    
+  * Gate sensitive capabilities behind secure contexts, permission state, permissions policy, user intent, or explicit consent depending on the API surface. ([W3C](https://www.w3.org/TR/secure-contexts/))
+
+
+* **Implementation mitigations**:  
+    
+  * Use sandboxing, site isolation, hostile-renderer assumptions, and strong IPC validation, especially around shared or less-sandboxed subsystems such as GPU processes. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+
+* **State mitigations**:  
+    
+  * Scope state to storage keys and deploy partitioning and controlled exceptions carefully, because persistent state is both a security foothold and a privacy correlation surface. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))
+
+
+* **UI mitigations**:  
+    
+  * Keep security chrome visible, make permission/transport state legible, and avoid allowing web content to convincingly impersonate trusted browser signals. ([W3C](https://www.w3.org/TR/wsc-ui/))
+
+
+* **Extension mitigations**:  
+    
+  * Constrain extension capabilities and reduce sensitive interception where possible through product architecture and safer extension APIs. ([Chrome for Developers](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3))
+
+### 13\. Security Considerations
+
+* This baseline model shows that the Web Platform’s security does not rest on one mechanism, but on the interaction of **origin-based separation**, **browser mediation**, **transport protection**, and **implementation confinement**. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* Therefore, later Web API reviews should not restate the entire platform model; they should identify where the candidate API changes the existing asset set, trust boundaries, permissions model, fingerprinting surface, or implementation burden. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))  
+    
+* In general, a new API is security-sensitive when it weakens origin separation, bypasses trusted browser mediation, creates new long-lived authority, expands hardware or local-environment reach, or shifts too much safety work from standards to product-specific hardening. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))  
+    
+* Security review should therefore ask not only whether the API is permission-gated, but also whether its output becomes a new cross-origin secret, a new fingerprinting vector, or a new pivot into less-confined implementation layers. ([W3C](https://www.w3.org/TR/permissions/))
+
+## 14\. Privacy Considerations
+
+* The Web security model and the Web privacy model are related but not identical, because an origin can be correctly isolated from other origins while still learning too much about its own users, devices, or contexts. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6973.html))  
+    
+* Persistent state is a privacy issue as well as a security issue, because the same storage that preserves session continuity can also preserve long-term identifiers and cross-context correlation. ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/))  
+    
+* Browser partitioning and private-browsing-related behavior matter because they reduce correlation beyond the baseline origin model, but those behaviors are not fully uniform platform guarantees and often live at the product layer. ([W3C](https://www.w3.org/TR/design-principles/))  
+    
+* Capability-bearing APIs enlarge privacy analysis because GPU limits, XR spatial/environmental data, and ML capability signals can all function as identifying or sensitive information even when direct account data is absent. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))  
+    
+* WebNN also illustrates that privacy effects can be mixed: on-device inference can reduce disclosure to cloud services, while still exposing local capability information and implementation-specific behavior. ([W3C](https://www.w3.org/TR/webnn/))  
+    
+* Consequently, later API reviews should ask not only “what data is read?” but also “what identifiers, capability signals, or contextual correlations are created by exposing this feature inside the browser?” ([W3C](https://www.w3.org/TR/fingerprinting-guidance/))
+
+### 15\. Implementation Considerations
+
+* Specifications define the interoperable model, but implementations decide how to realize it safely under memory-safety risk, hostile-input risk, and compromised-renderer assumptions. ([html.spec.whatwg.org](https://html.spec.whatwg.org/))  
+    
+* Therefore, implementation considerations include sandboxing, process separation, storage-key correctness, permission-state consistency, IPC validation, GPU-process hardening, and careful integration of XR and ML runtimes. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+    
+* HTML’s agent-cluster abstraction is useful here precisely because it separates the interoperable security idea from the concrete process architecture that one browser or another may deploy. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/webappapis.html))  
+    
+* Consequently, implementation reviews should explicitly state which guarantees are normative platform rules and which are implementation hardening choices that can vary by engine or product. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))
+
+### 16\. Browser Product Considerations
+
+* The browser-product layer matters because trusted UI, prompts, defaults, private browsing modes, anti-tracking controls, extension architecture, and update policy shape the practical safety of the platform for real users. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* Product behavior can strengthen platform security through site isolation, partitioning, or safer extension APIs, but those choices should not be confused with universally normative platform rules. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+    
+* Product behavior can also weaken effective security if indicators are unclear, permissions are over-granted, extensions are over-privileged, or browser/UI distinctions are not maintained. ([W3C](https://www.w3.org/TR/wsc-ui/))  
+    
+* Therefore, later API-specific reviews should identify where safety depends on browser-product UX or policy rather than on interoperable technical constraints alone. ([W3C](https://www.w3.org/TR/permissions/))
+
+### 17\. Open Issues and Gaps
+
+* A single standards-defined process model for browser isolation is intentionally absent; implementations use different process, sandbox, and site-isolation strategies, so part of the effective Web security model remains implementation-defined. ([html.spec.whatwg.org](https://html.spec.whatwg.org/multipage/webappapis.html))  
+    
+* Storage partitioning and private-browsing resistance are important to the modern platform, but much of that behavior remains product-specific rather than a single uniform normative contract. ([MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/State_Partitioning))  
+    
+* Extension privilege remains partly outside the ordinary web isolation model, which means the browser product layer can materially change the user’s effective threat surface. ([Chrome for Developers](https://developer.chrome.com/docs/extensions/mv2/architecture-overview))  
+    
+* GPU, XR, and ML features increase dependence on lower-level drivers, runtimes, and device integrations that are not fully describable inside ordinary document/origin semantics. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))  
+    
+* A stable, cross-browser baseline rule for **local/private-network reachability** is **Unsupported by allowed sources** in this document’s permitted corpus, so later reviews should treat this as an area requiring fresh source validation rather than inherited baseline certainty.
+
+### 18\. Assumptions, Dependencies, and Out-of-Scope Items
+
+* **Assumptions**:  
+    
+  * Trusted roots, transport, and endpoint authentication are functioning well enough for secure contexts and origin binding to mean something in practice. ([RFC Editor](https://www.rfc-editor.org/info/rfc8446))  
+  * The browser is not already fully compromised below its own trust boundary. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+  * Web content is untrusted unless bounded by platform policy and browser mediation. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html))
+
+
+* **Dependencies**:  
+    
+  * Operating-system and driver correctness remain dependencies of sandbox and hardware-facing security. ([Chromium Git Repositories](https://chromium.googlesource.com/chromium/src/%2B/HEAD/docs/design/sandbox_faq.md))  
+  * Server behavior, application integrity, and remote-service trust remain dependencies beyond what the browser can guarantee. ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6973.html))
+
+
+* **Out of scope**:  
+    
+  * Full server-side application security, business-logic flaws, and non-web native application models are outside this baseline except where they directly affect browser/platform trust boundaries. ([html.spec.whatwg.org](https://html.spec.whatwg.org/print.pdf))  
+  * Detailed per-API threat enumeration is outside this baseline except where needed to illustrate the reusable platform model. ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))
+
+### 19\. API Reuse Guidance
+
+* This section is the practical bridge from the baseline model to later API reviews: the question is not “start from zero,” but “what delta does the API introduce against the existing platform model?” ([W3C](https://www.w3.org/TR/security-privacy-questionnaire/))
+
+| Reuse question for later APIs | Why it matters against the baseline | Typical controls to examine | Refs |
+| :---- | :---- | :---- | :---- |
+| Does the API weaken a baseline invariant? | APIs that bypass origin, transport, or browser mediation change the platform model rather than merely extending it. | Origin checks, secure contexts, browser mediation, explicit consent. | ([RFC Editor](https://www.rfc-editor.org/rfc/rfc6454.html)) |
+| Does it create new assets or secrets? | New assets require new confidentiality and integrity protections. | Storage scoping, lifecycle, cross-origin exposure rules. | ([storage.spec.whatwg.org](https://storage.spec.whatwg.org/)) |
+| Does it create a new trust boundary? | Device, local, GPU, XR, and ML boundaries have different failure modes than ordinary document execution. | Permissions, permissions policy, subsystem hardening. | ([W3C](https://www.w3.org/TR/permissions/)) |
+| Does it expose new identifiers or increase fingerprinting? | Privacy and exploit-targeting risk may increase even without direct data reads. | Fingerprinting review, coarse capability exposure, anti-correlation measures. | ([W3C](https://www.w3.org/TR/fingerprinting-guidance/)) |
+| Does it change browser UI or user expectations? | Security may depend on trusted UX, not just technical access control. | Indicators, prompts, trusted UI separation, visibility. | ([W3C](https://www.w3.org/TR/wsc-ui/)) |
+| Does it shift burden to implementations or products? | Some APIs are safe only if browsers perform substantial extra hardening. | Sandbox/process model, IPC validation, product defaults. | ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/)) |
+| Does it change JS/Wasm execution assumptions? | New compile, share, or import patterns can reshape hosted-code confinement. | Dynamic code controls, embedding constraints, agent/store behavior. | ([tc39.es](https://tc39.es/ecma262/multipage/global-object.html)) |
+| Does it resemble GPU/XR/ML capability exposure? | Capability-bearing surfaces often need stronger review than ordinary DOM extensions. | Secure contexts, permissions, policy delegation, privacy review. | ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/)) |
+
+### 20\. References
+
+#### W3C
+
+* [Security & Privacy Questionnaire](https://www.w3.org/TR/security-privacy-questionnaire/)  
+* [Secure Contexts](https://www.w3.org/TR/secure-contexts/)  
+* [Mixed Content](https://www.w3.org/TR/mixed-content/)  
+* [Permissions](https://www.w3.org/TR/permissions/)  
+* [Permissions Policy](https://www.w3.org/TR/permissions-policy/)  
+* [Service Workers](https://www.w3.org/TR/service-workers/)  
+* [Web Security Context: User Interface Guidelines](https://www.w3.org/TR/wsc-ui/)  
+* [Mitigating Browser Fingerprinting in Web Specifications](https://www.w3.org/TR/fingerprinting-guidance/)  
+* [Design Principles for the Web](https://www.w3.org/TR/design-principles/)  
+* [WebGPU](https://www.w3.org/TR/webgpu/)  
+* [WebXR Device API](https://www.w3.org/TR/webxr/)  
+* [WebNN API](https://www.w3.org/TR/webnn/)  
+* [WebAssembly JavaScript API](https://www.w3.org/TR/wasm-js-api-2/)
+
+#### WHATWG
+
+* [HTML Standard](https://html.spec.whatwg.org/)  
+* [Fetch Standard](https://fetch.spec.whatwg.org/)  
+* [Storage Standard](https://storage.spec.whatwg.org/)
+
+#### IETF
+
+* [RFC 6454: The Web Origin Concept](https://www.rfc-editor.org/rfc/rfc6454)  
+* [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://www.rfc-editor.org/rfc/rfc8446)  
+* [RFC 6797: HTTP Strict Transport Security (HSTS)](https://www.rfc-editor.org/rfc/rfc6797)  
+* [RFC 6973: Privacy Considerations for Internet Protocols](https://www.rfc-editor.org/rfc/rfc6973)
+
+#### Ecma International
+
+* [ECMA-262 / ECMAScript Language Specification](https://tc39.es/ecma262/)
+
+#### Official WebAssembly Specifications and Documentation
+
+* [WebAssembly Core Specification](https://webassembly.github.io/spec/core/)  
+* [WebAssembly JavaScript API](https://www.w3.org/TR/wasm-js-api-2/)
+
+#### WebGPU / WGSL
+
+* [WebGPU](https://www.w3.org/TR/webgpu/)  
+* Official WebGPU security/privacy explainer material used through official associated sources. ([gpuweb.github.io](https://gpuweb.github.io/gpuweb/explainer/))
+
+#### WebXR
+
+* [WebXR Device API](https://www.w3.org/TR/webxr/)
+
+#### WebNN / WebML
+
+* [WebNN API](https://www.w3.org/TR/webnn/)
+
+#### Browser Vendor Documentation
+
+* Chromium site isolation, multi-process, and sandbox documentation. ([chromium.org](https://www.chromium.org/developers/design-documents/site-isolation/))  
+* Mozilla / Firefox site-isolation documentation. ([Mozilla Hacks – the Web developer blog](https://hacks.mozilla.org/2021/05/introducing-firefox-new-site-isolation-security-architecture/))  
+* MDN, Chrome, and WebKit partitioning / storage-access / extension documentation. ([MDN Web Docs](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/State_Partitioning))
+
