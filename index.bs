@@ -21,6 +21,7 @@ Status: NOTE-WD
 ED: http://w3c.github.io/threat-model-web/
 Markup Shorthands: markdown on, biblio yes
 Boilerplate: omit issues-index, omit conformance, repository-issue-tracking off
+Local Boilerplate: status yes
 </pre>
 
 # What are we building?
