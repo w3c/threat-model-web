@@ -24,16 +24,19 @@ Boilerplate: omit issues-index, omit conformance, repository-issue-tracking off
 
 ## Use Scenario
 
-The Web Platform is a collection of open (royalty-free) technologies that enable the Web. As a platform, users interact with websites using their user agent (e.g., a Web Browser).
+The Web Platform is a collection of open and royalty-free technologies that enable the Web. Users interact with websites through a user agent, such as a web browser or another agent acting on the user’s behalf.
 
-Websites contain a series of file formats, such as HTML, CSS, fonts, multimedia files, and scripts, that are transmitted from the server to the user's device, interpreted, and rendered by the browser so the user can use them.   
-The web browser is a critical and widely used gateway for accessing the web. It is increasingly relied upon as the single most important application for work, forming the basis of browser-centric workflows.
+A website is not only a document for passive consumption by the user. It is a set of resources, such as HTML, CSS, fonts, media, scripts, and data, that are retrieved from the network and then interpreted, parsed, executed, and rendered by the user agent.
 
-However, the Web Platform presents significant security and privacy challenges for the Web Browser, which is designed to request and execute instructions from arbitrary locations on the Internet, and it must surrender considerable control to web servers to render content correctly, as it runs code from untrusted sources.
+Websites are therefore active execution environments. A response from a web server can include executable scripts, user interface definitions, references to third-party resources, and instructions that cause the user agent to read user input, update the interface, invoke Web APIs, store or retrieve local state, interact with the underlying platform, and communicate with remote services.
 
-Therefore, a Web Security Model—which defines the logic of web security — that can be characterized by the centrality of the concept of origin and isolation. These concepts are enshrined as part of the underlying logic in web specifications and are subsequently implemented in the various components of Web User Agents. Web browsers are a type of Web User Agent.
+This changes the relevant trust boundary. The user agent is not only rendering content received from a remote server; it is mediating the execution of untrusted code within the user’s environment. That code may observe user interaction, influence what the user sees, request access to powerful APIs, interact with origin-scoped storage, and send information back to servers.
 
-That's why it's interesting to analyze the threat model by abstracting the structure of a hypothetical web browser.
+This creates a structural security and privacy challenge. User agents are designed to retrieve, process, and execute resources from arbitrary locations on the Internet, while preserving the security and privacy expectations of the user.
+
+The Web Security Model addresses this challenge defining concepts such as origin, isolation, mediation, and controlled access to powerful capabilities. These concepts are defined in web specifications and implemented across the different components of user agents.
+
+Web browsers are the most common type of Web User Agent. In some cases, automated or AI-enabled agents may also retrieve, process, or act upon web resources on behalf of the user. However, this threat model focuses on the browser as the primary Web User Agent and as the main enforcement point for the Web Security Model. For this reason, this threat model analyzes the Web Platform by abstracting the structure and security-relevant components of a baseline Web User Agent model.
 
 ## Web Browser Components
 
