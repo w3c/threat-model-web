@@ -22,7 +22,7 @@
 	(<a href="https://lists.w3.org/Archives/Public/public-security/">comment archive</a>).
 	In-progress updates can be viewed in the <a href="https://w3c.github.io/threat-modeling-guide/">public editors’ draft</a>.
 
-<p include-if="NOTE-WD">
+<p include-if="NOTE-WD" data-deliverer="49310">
 	This document was published by the
 	<a href="https://www.w3.org/groups/ig/security/">Security Interest Group</a>
 	as a Group Note Draft using the
