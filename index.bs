@@ -34,7 +34,7 @@ This changes the relevant trust boundary. The user agent is not only rendering c
 
 This creates a structural security and privacy challenge. User agents are designed to retrieve, process, and execute resources from arbitrary locations on the Internet, while preserving the security and privacy expectations of the user.
 
-The Web Security Model addresses this challenge defining concepts such as origin, isolation, mediation, and controlled access to powerful capabilities. These concepts are defined in web specifications and implemented across the different components of uer agents.
+The Web Security Model addresses this challenge defining concepts such as origin, isolation, mediation, and controlled access to powerful capabilities. These concepts are defined in web specifications and implemented across the different components of user agents.
 
 Web browsers are the most common type of Web User Agent. In some cases, automated or AI-enabled agents may also retrieve, process, or act upon web resources on behalf of the user. However, this threat model focuses on the browser as the primary Web User Agent and as the main enforcement point for the Web Security Model. For this reason, this threat model analyzes the Web Platform by abstracting the structure and security-relevant components of a baseline Web User Agent model.
 
