@@ -38,7 +38,10 @@
 <p include-if="NOTE-WD">
 	The <a href="https://www.w3.org/policies/patent-policy/">W3C Patent Policy</a>
 	does not carry any licensing requirements or commitments on this document.
+
+<p include-if="NOTE-WD">
 	This document is governed by the
-	<a id="w3c_process_revision" href="https://www.w3.org/policies/process/20250818/">18 August 2025 W3C Process Document</a>.
+	<a id="w3c_process_revision" href="https://www.w3.org/policies/process/20250818/">18 August 2025</a>
+	W3C Process Document.
 
 [STATUSTEXT]
