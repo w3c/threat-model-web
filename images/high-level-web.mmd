@@ -1,0 +1,30 @@
+%%{init: {"theme":"base","themeCSS":".nodeLabel,.edgeLabel,.cluster-label,.label{font-family:Arial,sans-serif!important;font-weight:bold!important;}","flowchart":{"defaultRenderer":"dagre","htmlLabels":true,"curve":"linear","nodeSpacing":80,"rankSpacing":95,"padding":18},"themeVariables":{"fontFamily":"Arial, sans-serif","fontSize":"22px","primaryColor":"#fff","primaryTextColor":"#000","primaryBorderColor":"#000","lineColor":"#000","secondaryColor":"#fff","tertiaryColor":"#fff","edgeLabelBackground":"#fff","clusterBkg":"#fff","clusterBorder":"#000"}}}%%
+flowchart TB
+
+  EE1_User[EE-01<br/>User]
+
+  subgraph TB1_BrowserBoundary["TB-01 Web User Agent Boundary"]
+    direction TB
+    PO1_WebBrowser(PO-01<br/>Web Browser)
+
+    subgraph TB2_WebContextIsolation["TB-02 Web Context Isolation Boundaries"]
+      PO2_DocumentOriginContext(PO-02<br/>Document / Origin<br/>Execution Context)
+    end
+  end
+
+  EE2_RemoteWebSite[EE-02<br/>Remote Web Site / Service]
+
+  EE1_User ==>|DF-01<br/>User Input / Navigation| PO1_WebBrowser
+  EE1_User <==>|DF-02<br/>Rendered Output /<br/>Browser Mediation| PO1_WebBrowser
+  PO2_DocumentOriginContext <==>|DF-03<br/>Web Content /<br/>Response Data| EE2_RemoteWebSite
+  PO2_DocumentOriginContext ==>|DF-04<br/>Requests /<br/>Submitted Data| EE2_RemoteWebSite
+  PO1_WebBrowser <==>|DF-05<br/>Web API Request| PO2_DocumentOriginContext
+  PO1_WebBrowser ==>|DF-06<br/>Web API Result /<br/>Event / Error| PO2_DocumentOriginContext
+
+  classDef default fill:#fff,stroke:#000,stroke-width:4px,color:#000,font-size:22px,font-weight:bold,font-family:Arial
+
+  style TB1_BrowserBoundary fill:#ffffff,stroke:#000000,stroke-width:4px,stroke-dasharray:8 6,color:#000000
+  style TB2_WebContextIsolation fill:#f7f7f7,stroke:#000000,stroke-width:4px,stroke-dasharray:8 6,color:#000000
+
+  linkStyle default stroke:#000,stroke-width:3px,color:#000
+  linkStyle 1,2,4 marker-end:none
