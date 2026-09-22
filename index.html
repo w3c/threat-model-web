@@ -6,7 +6,7 @@
   <meta content="ED" name="w3c-status">
   <meta content="Bikeshed version ea4009a02, updated Thu Sep 17 15:24:44 2026 -0700" name="generator">
   <link href="https://www.w3.org/TR/threat-model-web/" rel="canonical">
-  <meta content="909c9ab2a7a12a26994516cd9cb05d1af288e24e" name="revision">
+  <meta content="713a399c3ebe5e1e4bcc6772251eaf623c2c633c" name="revision">
   <meta content="dark light" name="color-scheme">
 <style>/* Boilerplate: style-autolinks */
 .css.css, .property.property, .descriptor.descriptor {
@@ -475,11 +475,10 @@ dfn > a.self-link::before      { content: "#"; }
      <a href="#what-are-we-building"><span class="secno">1</span> <span class="content">What are we building?</span></a>
      <ol class="toc">
       <li>
-       <a href="#high-level-web-threat-model"><span class="secno">1.1</span> <span class="content">High-Level Web Threat Model</span></a>
+       <a href="#high-level-web-threat-model"><span class="secno">1.1</span> <span class="content">High-Level Web Threat Model (L0)</span></a>
        <ol class="toc">
-        <li><a href="#element-dictionary"><span class="secno">1.1.1</span> <span class="content">Element dictionary</span></a>
-        <li><a href="#trust-boundaries"><span class="secno">1.1.2</span> <span class="content">Trust boundaries</span></a>
-        <li><a href="#relationship-to-the-web-browser-threat-model"><span class="secno">1.1.3</span> <span class="content">Relationship to the Web Browser Threat Model</span></a>
+        <li><a href="#high-level-web-element-dictionary"><span class="secno">1.1.1</span> <span class="content">L0 element dictionary</span></a>
+        <li><a href="#relationship-to-web-browser-threat-model"><span class="secno">1.1.2</span> <span class="content">Relationship to the Web Browser Threat Model</span></a>
        </ol>
       <li>
        <a href="#web-browser-threat-model"><span class="secno">1.2</span> <span class="content">Web Browser Threat Model</span></a>
@@ -489,7 +488,7 @@ dfn > a.self-link::before      { content: "#"; }
         <li><a href="#network-and-storage"><span class="secno">1.2.3</span> <span class="content">Network and storage</span></a>
         <li><a href="#graphics-media-and-helper"><span class="secno">1.2.4</span> <span class="content">Graphics, media, and Helper</span></a>
         <li>
-         <a href="#element-dictionary①"><span class="secno">1.2.5</span> <span class="content">Element dictionary</span></a>
+         <a href="#element-dictionary"><span class="secno">1.2.5</span> <span class="content">Element dictionary</span></a>
          <ol class="toc">
           <li><a href="#external-entities"><span class="secno">1.2.5.1</span> <span class="content">External entities</span></a>
           <li><a href="#threat-boundaries"><span class="secno">1.2.5.2</span> <span class="content">Threat Boundaries</span></a>
@@ -537,17 +536,15 @@ dfn > a.self-link::before      { content: "#"; }
    <p>Websites contain a series of file formats - passive content such as fonts, images, and multimedia, and active content such as HTML, JavaScript, and WebAssembly - that are transmitted from the server to the user’s device and interpreted by the web browser. Passive content is decoded and rendered; active content executes with the authority of its origin and constitutes the primary attack surface of the web. This distinction is useful, but not absolute: injected CSS can still become an attack surface, for example when selector matching and resource loads are used to infer or leak page state <a data-link-type="biblio" href="#biblio-xsleaks-css-injection" title="CSS Injection">[xsleaks-css-injection]</a>.</p>
    <p>Websites are therefore active execution environments. A response from a web server can include executable scripts, user interface definitions, references to third-party resources, and instructions that cause the user agent to read user input, update the interface, invoke Web APIs, store or retrieve local state, interact with the underlying platform, and communicate with remote services, this is why the web browser is a critical player in this context: it executes on the user’s device code from untrusted and network-accessed websites.</p>
    <p>Because of this complexity, this document does not attempt to define a single, exhaustive threat model for the Web. As the Web is a layered and evolving ecosystem, a single model would either be too abstract to guide development and review work, or too detailed to remain readable and useful. This follows the practical framing in Shostack’s threat modeling work: models are abstractions used to reason about what is being built and what can go wrong, and different models can be useful at different levels of fidelity <a data-link-type="biblio" href="#biblio-shostack-threat-modeling" title="Threat Modeling: Designing for Security">[shostack-threat-modeling]</a>. This document therefore acts as a collection of related threat models.</p>
-   <h3 class="heading settled" data-level="1.1" id="high-level-web-threat-model"><span class="secno">1.1. </span><span class="content">High-Level Web Threat Model</span><a class="self-link" href="#high-level-web-threat-model"></a></h3>
-   <p>The High-Level Web Threat model is the most abstract model in this document. It treats the user agent as as a single process and describes only the main elements, flows and boundaries to reason at very high-level.</p>
+   <h3 class="heading settled" data-level="1.1" id="high-level-web-threat-model"><span class="secno">1.1. </span><span class="content">High-Level Web Threat Model (L0)</span><a class="self-link" href="#high-level-web-threat-model"></a></h3>
+   <p>The High-Level Web Threat Model is a generic Web API model at L0. It distinguishes browser-controlled Web API mediation from the Document / Origin Execution Context while showing the exchanges with the user and a remote Web site or service. The model is logical and implementation-independent; it does not assert a Chromium, Gecko, or WebKit process boundary.</p>
    <figure id="dfd0-web-platform">
     
-  <img alt="A minimal data-flow diagram for the Web Platform" height="720" src="images/high-level-web.svg" width="1120">
+  <img alt="A vertical data-flow diagram showing the user, Web Browser, Document and Origin Execution Context, and remote Web site or service involved in a generic Web API" src="images/high-level-web.svg" width="720">
   
-    <figcaption>
-    High-Level Web Platform Model.
-  </figcaption>
+    <figcaption>High-Level Web Threat Model: Generic Web API L0.</figcaption>
    </figure>
-   <h4 class="heading settled" data-level="1.1.1" id="element-dictionary"><span class="secno">1.1.1. </span><span class="content">Element dictionary</span><a class="self-link" href="#element-dictionary"></a></h4>
+   <h4 class="heading settled" data-level="1.1.1" id="high-level-web-element-dictionary"><span class="secno">1.1.1. </span><span class="content">L0 element dictionary</span><a class="self-link" href="#high-level-web-element-dictionary"></a></h4>
    <table>
     <thead>
      <tr>
@@ -557,93 +554,68 @@ dfn > a.self-link::before      { content: "#"; }
       <th>Description
     <tbody>
      <tr id="user" resource="#user" typeof="skos:Concept">
-      <td property="skos:notation">E0
+      <td property="skos:notation">EE-01
       <td property="skos:prefLabel">User
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#external-entity">External entity
-      <td property="skos:definition">Human user interacting with the Web through a user agent.
-     <tr id="remote-web-origins" resource="#remote-web-origins" typeof="skos:Concept">
-      <td property="skos:notation">E1
-      <td property="skos:prefLabel">Remote Web Origin(s)
+      <td property="skos:definition">Person who supplies browser input or navigation intent and receives rendered output or browser mediation.
+     <tr id="remote-web-site-service" resource="#remote-web-site-service" typeof="skos:Concept">
+      <td property="skos:notation">EE-02
+      <td property="skos:prefLabel">Remote Web Site / Service
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#external-entity">External entity
-      <td property="skos:definition">Remote origins that provide HTML, CSS, JavaScript, WebAssembly, media, APIs, identity endpoints, and other web resources.
-     <tr id="network-infrastructure" resource="#network-infrastructure" typeof="skos:Concept">
-      <td property="skos:notation">E2
-      <td property="skos:prefLabel">Network Infrastructure
-      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#external-entity">External entity
-      <td property="skos:definition">Local network, Internet routing, name resolution, transport protocols, and other network services used to fetch remote content.
-     <tr id="operating-system-device-platform" resource="#operating-system-device-platform" typeof="skos:Concept">
-      <td property="skos:notation">E3
-      <td property="skos:prefLabel">Operating System / Device / Platform
-      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#external-entity">External entity
-      <td property="skos:definition">Filesystem, clipboard, camera, microphone, GPU, sensors, authenticators, hardware-backed capabilities, and other platform services outside the Web Platform boundary.
-     <tr id="user-agent-web-browser" resource="#user-agent-web-browser" typeof="skos:Concept">
-      <td property="skos:notation">P0
-      <td property="skos:prefLabel">User Agent / Web Browser
+      <td property="skos:definition">Remote Web principal that supplies page resources and runtime responses and receives application requests.
+     <tr id="web-browser" resource="#web-browser" typeof="skos:Concept">
+      <td property="skos:notation">PO-01
+      <td property="skos:prefLabel">Web Browser
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#process">Process
-      <td property="skos:definition">Browser or other user agent that fetches, interprets, executes, mediates, stores, renders, and presents Web content on behalf of the user.
-     <tr id="browser-managed-state" resource="#browser-managed-state" typeof="skos:Concept">
-      <td property="skos:notation">S0
-      <td property="skos:prefLabel">Browser-managed State
-      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#data-store">Data store
-      <td property="skos:definition">Cookies, cache, storage, permissions, site settings, session state, profile data, credential references, and other state controlled or mediated by the user agent.
-     <tr id="user-interaction" resource="#user-interaction" typeof="skos:Concept">
-      <td property="skos:notation">F0
-      <td property="skos:prefLabel">User interaction
+      <td property="skos:definition">Browser-controlled logical process that mediates user interaction and handles Web API requests and their results, events, or errors.
+     <tr id="document-origin-execution-context" resource="#document-origin-execution-context" typeof="skos:Concept">
+      <td property="skos:notation">PO-02
+      <td property="skos:prefLabel">Document / Origin Execution Context
+      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#process">Process
+      <td property="skos:definition">Loaded page and origin-bound execution context that consumes remote resources, performs runtime Web communication, and calls Web APIs.
+     <tr id="user-input-navigation" resource="#user-input-navigation" typeof="skos:Concept">
+      <td property="skos:notation">DF-01
+      <td property="skos:prefLabel">User Input / Navigation
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#flow">Data flow
-      <td property="skos:definition">User input and output through browser UI, rendered content, prompts, and other user-agent surfaces.
-     <tr id="web-request-response" resource="#web-request-response" typeof="skos:Concept">
-      <td property="skos:notation">F1
-      <td property="skos:prefLabel">Web request / response
+      <td property="skos:definition">User-supplied navigation intent, interaction, or browser-control input entering browser-controlled processing.
+     <tr id="rendered-output-browser-mediation" resource="#rendered-output-browser-mediation" typeof="skos:Concept">
+      <td property="skos:notation">DF-02
+      <td property="skos:prefLabel">Rendered Output / Browser Mediation
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#flow">Data flow
-      <td property="skos:definition">Requests and responses exchanged between the user agent and remote web origins, usually over network protocols such as HTTP(S).
-     <tr id="subresource-and-third-party-loads" resource="#subresource-and-third-party-loads" typeof="skos:Concept">
-      <td property="skos:notation">F2
-      <td property="skos:prefLabel">Subresource and third-party loads
+      <td property="skos:definition">Rendered output, browser UI, status, or mediation presented from browser-controlled processing to the user.
+     <tr id="web-content-response-data" resource="#web-content-response-data" typeof="skos:Concept">
+      <td property="skos:notation">DF-03
+      <td property="skos:prefLabel">Web Content / Response Data
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#flow">Data flow
-      <td property="skos:definition">Web content causing the user agent to fetch scripts, frames, media, fonts, APIs, or other resources from the same or different origins.
-     <tr id="browser-state-access" resource="#browser-state-access" typeof="skos:Concept">
-      <td property="skos:notation">F3
-      <td property="skos:prefLabel">Browser state access
+      <td property="skos:definition">Page resources, response payloads, and connection data supplied by the remote Web site or service to the document context.
+     <tr id="requests-submitted-data" resource="#requests-submitted-data" typeof="skos:Concept">
+      <td property="skos:notation">DF-04
+      <td property="skos:prefLabel">Requests / Submitted Data
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#flow">Data flow
-      <td property="skos:definition">Reads and writes between the user agent and browser-managed state.
-     <tr id="brokered-platform-access" resource="#brokered-platform-access" typeof="skos:Concept">
-      <td property="skos:notation">F4
-      <td property="skos:prefLabel">Brokered platform access
+      <td property="skos:definition">Requests, submitted payloads, and connection data sent by the document context to the remote Web site or service.
+     <tr id="web-api-request" resource="#web-api-request" typeof="skos:Concept">
+      <td property="skos:notation">DF-05
+      <td property="skos:prefLabel">Web API Request
       <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#flow">Data flow
-      <td property="skos:definition">Browser-mediated access to operating-system, device, sensor, authenticator, filesystem, clipboard, graphics, media, or other platform capabilities.
+      <td property="skos:definition">Generic Web API call, options, arguments, or control request sent from the document context to browser-controlled API processing.
+     <tr id="web-api-result-event-error" resource="#web-api-result-event-error" typeof="skos:Concept">
+      <td property="skos:notation">DF-06
+      <td property="skos:prefLabel">Web API Result / Event / Error
+      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#flow">Data flow
+      <td property="skos:definition">Generic return value, promise settlement, callback, event, status, or error delivered by browser-controlled API processing to the document context.
+     <tr id="web-user-agent-boundary" resource="#web-user-agent-boundary" typeof="skos:Concept">
+      <td property="skos:notation">TB-01
+      <td property="skos:prefLabel">Web User Agent Boundary
+      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#trust-boundary">Trust boundary
+      <td property="skos:definition">Outer logical Web user-agent boundary around browser-controlled API mediation and document execution contexts.
+     <tr id="web-context-isolation-boundaries" resource="#web-context-isolation-boundaries" typeof="skos:Concept">
+      <td property="skos:notation">TB-02
+      <td property="skos:prefLabel">Web Context Isolation Boundaries
+      <td rel="skos:broadMatch" resource="https://www.w3.org/TR/threat-modeling-guide/#trust-boundary">Trust boundary
+      <td property="skos:definition">Abstract family of boundaries separating Web origin and context authority; lower-level models may distinguish origin, browsing mode, lifecycle, sandbox, or implementation isolation.
    </table>
-   <h4 class="heading settled" data-level="1.1.2" id="trust-boundaries"><span class="secno">1.1.2. </span><span class="content">Trust boundaries</span><a class="self-link" href="#trust-boundaries"></a></h4>
-   <table>
-    <thead>
-     <tr>
-      <th>ID
-      <th>Name
-      <th>Description
-    <tbody>
-     <tr id="user-agent-boundary" resource="#user-agent-boundary" typeof="skos:Concept">
-      <td property="skos:notation">B0
-      <td property="skos:prefLabel">User Agent Boundary
-      <td property="skos:definition">Separates browser-controlled behavior from external web origins, the network, the user, and the underlying platform.
-     <tr id="web-origin-boundary" resource="#web-origin-boundary" typeof="skos:Concept">
-      <td property="skos:notation">B1
-      <td property="skos:prefLabel">Web Origin Boundary
-      <td property="skos:definition">Separates mutually distrusting origins from one another.
-     <tr id="network-boundary" resource="#network-boundary" typeof="skos:Concept">
-      <td property="skos:notation">B2
-      <td property="skos:prefLabel">Network Boundary
-      <td property="skos:definition">Separates the user agent and local environment from remote network infrastructure and remote services.
-     <tr id="browser-state-boundary" resource="#browser-state-boundary" typeof="skos:Concept">
-      <td property="skos:notation">B3
-      <td property="skos:prefLabel">Browser State Boundary
-      <td property="skos:definition">Separates browser-managed state from web content and external actors.
-     <tr id="operating-system-device-boundary" resource="#operating-system-device-boundary" typeof="skos:Concept">
-      <td property="skos:notation">B4
-      <td property="skos:prefLabel">Operating System / Device Boundary
-      <td property="skos:definition">Separates Web Platform mediation from lower-level platform services and capabilities.
-   </table>
-   <h4 class="heading settled" data-level="1.1.3" id="relationship-to-the-web-browser-threat-model"><span class="secno">1.1.3. </span><span class="content">Relationship to the Web Browser Threat Model</span><a class="self-link" href="#relationship-to-the-web-browser-threat-model"></a></h4>
-   <p>The High-Level Threat Model deliberately keeps most browser internals out of view. This makes it useful when the review is about the Web Platform as a whole: the role of origins, the main actors, and the trust boundaries between users, web content, the network, browser-managed state, and the underlying platform.</p>
-   <p>That level stops being sufficient when the design or the review depends on where a decision is enforced, which browser component keeps state, how permission is mediated, how untrusted content is isolated, or how a Web API reaches capabilities exposed by the operating system. In those cases, the browser needs to be opened up. The Web Browser Threat Model below expands P0 for that purpose.</p>
+   <h4 class="heading settled" data-level="1.1.2" id="relationship-to-web-browser-threat-model"><span class="secno">1.1.2. </span><span class="content">Relationship to the Web Browser Threat Model</span><a class="self-link" href="#relationship-to-web-browser-threat-model"></a></h4>
+   <p>The High-Level Web Threat Model keeps browser-internal components out of view. The Web Browser Threat Model below expands its browser and Web content roles when a review depends on where a decision is enforced, which component keeps state, how permissions are mediated, how untrusted content is isolated, or how a Web API reaches network, storage, graphics, media, and operating-system capabilities.</p>
    <h3 class="heading settled" data-level="1.2" id="web-browser-threat-model"><span class="secno">1.2. </span><span class="content">Web Browser Threat Model</span><a class="self-link" href="#web-browser-threat-model"></a></h3>
    <p>The Web Browser Threat Model outlines recurring architectural roles in modern web browsers.</p>
    <figure id="threat-model">
@@ -652,7 +624,7 @@ dfn > a.self-link::before      { content: "#"; }
   
     <figcaption>Web Browser Threat Model.</figcaption>
    </figure>
-   <p>Rather than treating the browser as a single component, as in the Minimalist Web Threat Model, this abstraction captures how a modern browser distributes responsibility across multiple processes with different privileges, different access to state, and different exposure to untrusted input. It also captures how the browser enforces the web security model, including origin- and site-based isolation strategies, and how it protects itself when processing input from external web servers <a data-link-type="biblio" href="#biblio-threat-modeling-guide" title="Threat Modeling Guide">[threat-modeling-guide]</a>.</p>
+   <p>Rather than treating browser-controlled Web API mediation as a single logical process, as in the High-Level Web Threat Model (L0), this abstraction captures how a modern browser distributes responsibility across multiple processes with different privileges, different access to state, and different exposure to untrusted input. It also captures how the browser enforces the web security model, including origin- and site-based isolation strategies, and how it protects itself when processing input from external web servers <a data-link-type="biblio" href="#biblio-threat-modeling-guide" title="Threat Modeling Guide">[threat-modeling-guide]</a>.</p>
    <p>These two concerns are related but not identical. A content process is isolated not only because web content is untrusted, but also because the browser must preserve same-origin isolation and the separation between the browser and the OS/platform. In practice, those are distinct trust boundaries, even when an implementation uses the same process architecture to support both.</p>
    <p>Across each web browser, the implementation details differ. Even so, a common structure emerges.</p>
    <h4 class="heading settled" data-level="1.2.1" id="privileged-browser-process"><span class="secno">1.2.1. </span><span class="content">Privileged browser process</span><a class="self-link" href="#privileged-browser-process"></a></h4>
@@ -671,7 +643,7 @@ dfn > a.self-link::before      { content: "#"; }
    <p>Modern web browsers also separate GPU, codec, and other helper functionality into separate processes, also because media libraries are a common attack surface. Chromium separates the <strong>GPU process</strong> and additional helper-process families. Firefox separates a <strong>GPU Process</strong>, an <strong>RDD Process</strong>, a <strong>GMP Process</strong>, a <strong>Utility Process</strong>, and a <strong>Network (Socket) Process</strong>. WebKit also separates processes for related functionality <a data-link-type="biblio" href="#biblio-inside-browser-part-1" title="Chrome &quot;Inside look at modern web browser&quot; - part 1">[inside-browser-part-1]</a> <a data-link-type="biblio" href="#biblio-firefox-gecko-processes" title="Firefox Gecko Processes">[firefox-gecko-processes]</a> <a data-link-type="biblio" href="#biblio-webkit2-architecture-overview" title="WebKit2 architecture overview">[webkit2-architecture-overview]</a>.</p>
    <p>From a threat-modeling perspective, these helper processes are important because they sit at the boundary between untrusted content and complex implementation surfaces. This is also a general implementation pattern: untrusted execution or functionality prone to crashes is separated from the privileged control path to reduce impact if faults occur.</p>
    <p>In <a href="#threat-model">the Web Browser Threat Model diagram</a>, the diagram refers to this process as <em>"GPU / Compositor / Media helper Process"</em>.</p>
-   <h4 class="heading settled" data-level="1.2.5" id="element-dictionary①"><span class="secno">1.2.5. </span><span class="content">Element dictionary</span><a class="self-link" href="#element-dictionary①"></a></h4>
+   <h4 class="heading settled" data-level="1.2.5" id="element-dictionary"><span class="secno">1.2.5. </span><span class="content">Element dictionary</span><a class="self-link" href="#element-dictionary"></a></h4>
    <h5 class="heading settled" data-level="1.2.5.1" id="external-entities"><span class="secno">1.2.5.1. </span><span class="content">External entities</span><a class="self-link" href="#external-entities"></a></h5>
    <table>
     <thead>
