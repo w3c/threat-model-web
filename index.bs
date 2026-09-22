@@ -470,7 +470,7 @@ The notation follows the W3C Threat Modeling Guide: **E** for external entities,
 
 ## Assumptions and External Dependencies
 
-The System Model depends on several external systems, services, and responsibilities that are outside direct browser control but affect the browser's security posture:
+The Web Browser Threat Model depends on several external systems, services, and responsibilities that are outside direct browser control but affect the browser's security posture:
 
 *   **Operating System (OS)**: The browser runs with privileges granted by the OS, equivalent to user privileges. Browser security goals must manifest correctly between tabs, websites, and the OS. The OS provides a higher level of security against direct network connections than browsers.
 *   **Network/Internet**: The browser's primary function involves requesting instructions and content from arbitrary locations on the Internet. This relies on the underlying network protocols like TCP/IP, which the browser presumably trusts. The decentralised nature of the internet means unencrypted data is likely being read by someone.
@@ -482,7 +482,7 @@ The System Model depends on several external systems, services, and responsibili
 
 ## Entry Points and Attack Surface
 
-Entry points are read against the flows and boundaries in the System Model. They are interfaces or mechanisms through which an adversary can interact with or supply data to the system. For a web browser, these include:
+Entry points are identified against the flows and boundaries of the threat model being analyzed. They are interfaces or mechanisms through which an adversary can interact with or supply data to the system. For a web browser, these include:
 
 *   **The Browser UI**: The user interface itself, where user input is provided. It includes also Trusted UI.
 *   **Network Interfaces**: Ports and protocols the browser uses to communicate over the network (e.g., Sockets, RPC, HTTP/HTTPS ports).
@@ -517,7 +517,7 @@ The following properties and invariants are used as prompts for the threat analy
 *   Browser-mediated permissions are granted through browser-controlled user mediation, policy, or configuration.
 *   Browser-managed state is scoped according to the relevant origin, site, profile, partition, or permission boundary.
 *   Security-sensitive user intent is not inferred from web-controlled UI alone where browser mediation is required.
-*   Network, storage, rendering, and operating-system access paths preserve the boundaries shown in the System Model.
+*   Network, storage, rendering, and operating-system access paths preserve the boundaries represented in the relevant threat model.
 
 # What can go wrong?
 
@@ -527,7 +527,7 @@ The following properties and invariants are used as prompts for the threat analy
 
 ## Threat Analysis Method
 
-This threat model analyzes the Web Platform by iterating over the layers, elements, flows, stores, and boundaries in the System Model. For each relevant part of the model, the analysis asks what property is expected to hold, what can violate that property, who may be affected, and what harm may result. Threat sources and high-level threat families are used as prompts, but the analysis is grounded in the model above.
+This document analyzes the Web Platform through related threat models at different levels of abstraction. For each relevant model, the analysis considers the elements, flows, stores, and boundaries represented by that model and asks what property is expected to hold, what can violate that property, who may be affected, and what harm may result. Threat sources and high-level threat families are used as prompts, but the analysis is grounded in the relevant threat model.
 
 ## Threat Sources
 
